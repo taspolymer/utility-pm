@@ -1,0 +1,2544 @@
+<!DOCTYPE html>
+
+<html lang="th">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Utility PM Tracking System</title>
+
+<style>
+
+  *{box-sizing:border-box;font-family:"Segoe UI","Tahoma",sans-serif}
+
+  body{margin:0;background:#f0f2f5;color:#1f2937}
+
+  header{background:#0f3d63;color:#fff;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+
+  header h1{font-size:18px;margin:0}
+
+  nav{display:flex;gap:8px;flex-wrap:wrap;background:#124a78;padding:8px 16px}
+
+  nav button{background:transparent;border:1px solid #ffffff55;color:#fff;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:13px}
+
+  nav button.active{background:#fff;color:#0f3d63;font-weight:bold}
+
+  .page{display:none;padding:20px;max-width:1150px;margin:0 auto}
+
+  .page.active{display:block}
+
+  .card{background:#fff;border-radius:10px;padding:18px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+
+  .btn{background:#0f3d63;color:#fff;border:none;padding:9px 18px;border-radius:6px;cursor:pointer;font-size:14px}
+
+  .btn:disabled{opacity:.6;cursor:not-allowed}
+
+  .btn.secondary{background:#e5e7eb;color:#1f2937}
+
+  .btn.secondary.active{background:#0f3d63;color:#fff}
+
+  .btn.danger{background:#dc2626}
+
+  .btn.small{padding:6px 12px;font-size:12px}
+
+  input,select,textarea{width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:6px;margin-bottom:12px;font-size:14px}
+
+  input[readonly]{background:#f3f4f6}
+
+  label{font-weight:600;font-size:13px;color:#374151}
+
+  .table-wrap,.scroll-x{overflow-x:auto}
+
+  table{width:100%;border-collapse:collapse;margin-top:10px}
+
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid #eee;font-size:13px;vertical-align:top}
+
+  th{background:#f8fafc;color:#374151}
+
+  th.sortable{cursor:pointer;user-select:none;white-space:nowrap}
+
+  tr.clickable{cursor:pointer}
+
+  tr.clickable:hover{background:#f1f5f9}
+
+  td.empty{text-align:center;color:#9ca3af}
+
+  .muted{color:#6b7280;font-size:13px}
+
+  .badge{padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;white-space:nowrap}
+
+  .badge.red{background:#fee2e2;color:#b91c1c}
+
+  .badge.green{background:#dcfce7;color:#15803d}
+
+  .badge.yellow{background:#fef9c3;color:#a16207}
+
+  .badge.orange{background:#ffedd5;color:#c2410c}
+
+  .badge.blue{background:#dbeafe;color:#1e40af}
+
+  .badge.gray{background:#e5e7eb;color:#4b5563}
+
+  .upload-box{border:2px dashed #cbd5e1;border-radius:8px;height:130px;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:13px;cursor:pointer;overflow:hidden;text-align:center;padding:4px}
+
+  .thumb-fill{max-width:100%;max-height:100%;object-fit:contain}
+
+  img.photo{max-width:100%;border-radius:8px;border:1px solid #e5e7eb;margin-top:4px}
+
+  .stat{text-align:center;margin-bottom:0}
+
+  .stat .num{font-size:26px;font-weight:bold;color:#0f3d63}
+
+  .stat .label{font-size:12px;color:#6b7280}
+
+  .bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:13px}
+
+  .bar-track{flex:1;background:#e5e7eb;border-radius:6px;height:16px;overflow:hidden}
+
+  .bar-fill{height:100%;background:#0f3d63}
+
+  .home-card{text-align:center;padding:24px 10px;cursor:pointer;border:1px solid #e5e7eb;margin-bottom:0}
+
+  .home-card:hover{border-color:#0f3d63}
+
+  .home-icon{font-size:28px;margin-bottom:8px}
+
+  h2{margin-top:0;font-size:18px;color:#0f3d63}
+
+  h3{font-size:15px}
+
+  .radio-group{display:flex;gap:16px;margin-bottom:12px;font-size:14px;flex-wrap:wrap}
+
+  .radio-group label,label.inline{font-weight:400}
+
+  .radio-group input,label.inline input,.weekday-check input{width:auto;margin:0 4px 0 0}
+
+  .filter-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:6px}
+
+  .filter-bar label{font-size:12px;color:#6b7280;display:block;margin-bottom:3px}
+
+  .filter-group{display:flex;flex-direction:column;min-width:130px}
+
+  .filter-group select,.filter-group input{margin-bottom:0}
+
+  .row-count{font-size:12px;color:#6b7280;margin-top:8px}
+
+  .flex-between{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+
+  .btn-row{display:flex;gap:8px;flex-wrap:wrap}
+
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+
+  /* calendar */
+
+  .calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(70px,1fr));gap:6px;min-width:520px}
+
+  .calendar-head{text-align:center;font-weight:700;font-size:12px;color:#6b7280;padding:4px 0}
+
+  .calendar-cell{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;min-height:90px;padding:6px;font-size:11px;cursor:pointer}
+
+  .calendar-cell.other-month{background:#f3f4f6;border:1px dashed #e5e7eb;cursor:default}
+
+  .calendar-cell.today,.week-col.today{border:2px solid #0f3d63}
+
+  .calendar-cell .daynum,.week-col .daynum{font-weight:700;font-size:13px;color:#0f3d63;margin-bottom:4px}
+
+  .job-pill{display:block;background:#dbeafe;color:#1e40af;border-radius:4px;padding:2px 5px;margin-bottom:2px;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  .job-pill.done{background:#dcfce7;color:#15803d}
+
+  .job-pill.wait{background:#fef9c3;color:#a16207}
+
+  .job-pill.late{background:#fee2e2;color:#b91c1c}
+
+  .week-grid{display:grid;grid-template-columns:repeat(7,minmax(135px,1fr));gap:8px;min-width:950px}
+
+  .week-col{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:8px;min-height:220px}
+
+  .job-detail{background:#fff;border:1px solid #e5e7eb;border-radius:6px;padding:6px 8px;margin-bottom:6px;font-size:12px}
+
+  .job-detail .jn{font-weight:600;color:#0f3d63}
+
+  .job-detail .meta{color:#6b7280;font-size:11px;margin-top:2px}
+
+  .weekday-check{font-weight:400!important;margin-right:8px;font-size:13px;display:inline-flex;align-items:center}
+
+  .plan-report{font-size:13px;margin-top:10px}
+
+  .plan-report ul{margin:6px 0 0 18px;padding:0;color:#a16207}
+
+  .dirty-note{display:none;background:#fef9c3;color:#a16207;border-radius:6px;padding:8px 12px;font-size:13px;margin-top:10px}
+
+  /* timeline */
+
+  .tl-item{border-left:3px solid #0f3d63;padding:2px 0 10px 12px;margin-left:6px;font-size:13px}
+
+  .tl-item.first{border-color:#94a3b8}
+
+  .tl-head{font-size:12px;color:#6b7280;margin-bottom:2px}
+
+  /* machine picker */
+
+  #mpDrop{position:fixed;display:none;z-index:300;background:#fff;border:1px solid #cbd5e1;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.18);max-height:260px;overflow:auto}
+
+  .mp-item{padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid #f1f5f9}
+
+  .mp-item.sel,.mp-item:hover{background:#eff6ff}
+
+  .mp-item small{color:#6b7280;margin-left:6px}
+
+  .mp-hint{padding:7px 12px;font-size:12px;color:#6b7280;background:#f8fafc}
+
+  /* login / modal / misc */
+
+  .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+
+  .login-card{width:100%;max-width:380px}
+
+  .err{color:#b91c1c;font-size:13px;margin-top:10px;min-height:18px}
+
+  #mockBanner{display:none;background:#fef3c7;color:#92400e;font-size:12px;padding:6px 14px;text-align:center}
+
+  #mockBanner a{color:#92400e;cursor:pointer;text-decoration:underline}
+
+  .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;align-items:flex-start;justify-content:center;padding:30px 12px;overflow:auto}
+
+  .modal-bg.show{display:flex}
+
+  .modal-box{background:#fff;border-radius:10px;padding:20px;width:100%;max-width:640px}
+
+  #toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#111827;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;display:none;z-index:400}
+
+  @media(max-width:700px){.grid3,.grid4{grid-template-columns:1fr 1fr}.grid2{grid-template-columns:1fr}.page{padding:12px}}
+
+  @media print{nav,.filter-bar,.btn,#mockBanner,.no-print{display:none!important}body{background:#fff}.card{box-shadow:none;border:1px solid #ddd}}
+
+</style>
+
+</head>
+
+<body>
+
+
+<div id="mockBanner">⚙ โหมดทดสอบ: ข้อมูลเก็บในเบราว์เซอร์นี้เท่านั้น (ยังไม่ได้ตั้งค่า API_URL) &nbsp;|&nbsp; <a onclick="resetMock()">รีเซ็ตข้อมูลทดสอบ</a></div>
+
+
+<!-- ================= LOGIN ================= -->
+
+<div id="loginView" class="login-wrap">
+
+  <div class="card login-card">
+
+    <h2>🏭 Utility PM Tracking System</h2>
+
+    <label>Username</label>
+
+    <input id="loginUser" autocomplete="username">
+
+    <label>Password</label>
+
+    <input id="loginPass" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')submitLogin()">
+
+    <button class="btn" id="loginBtn" style="width:100%" onclick="submitLogin()">เข้าสู่ระบบ</button>
+
+    <div class="err" id="loginMsg"></div>
+
+    <div class="muted" id="mockHint" style="display:none">โหมดทดสอบ: <b>admin, supervisor, maintenance, viewer, somchai, somying, somsak, mana</b><br>รหัสผ่านทุกคน <b>1234</b></div>
+
+  </div>
+
+</div>
+
+
+<!-- ================= APP ================= -->
+
+<div id="appView" style="display:none">
+
+<header>
+
+  <h1>🏭 Utility PM Tracking System</h1>
+
+  <div style="font-size:13px"><span id="userInfo"></span> &nbsp;
+
+    <button class="btn secondary small" onclick="openChangePw()">🔑 รหัสผ่าน</button>
+
+    <button class="btn secondary small" onclick="logout()">ออกจากระบบ</button></div>
+
+</header>
+
+
+<nav>
+
+  <button data-page="home" onclick="showPage('home')">🏠 Home</button>
+
+  <button data-page="pmlist" onclick="showPage('pmlist')">📋 รายการ PM</button>
+
+  <button data-page="pmform" data-write onclick="openPMForm()">📝 บันทึก PM</button>
+
+  <button data-page="abnormal" data-write onclick="openAbnormalForm()">⚠ บันทึกปัญหา</button>
+
+  <button data-page="planpm" onclick="showPage('planpm')">📅 แผนงาน PM</button>
+
+  <button data-page="dash1" onclick="showPage('dash1')">📊 Dashboard PM</button>
+
+  <button data-page="dash2" onclick="showPage('dash2')">📈 Dashboard ปัญหา</button>
+
+  <button data-page="admin" data-admin onclick="showPage('admin')">⚙ จัดการระบบ</button>
+
+</nav>
+
+
+<!-- HOME -->
+
+<div id="home" class="page">
+
+  <div class="card">
+
+    <h2 id="homeTitle"></h2>
+
+    <div class="grid3">
+
+      <div class="card home-card" onclick="showPage('pmlist')"><div class="home-icon">📋</div><b>รายการงาน PM</b><p class="muted" id="hm1"></p></div>
+
+      <div class="card home-card" data-write onclick="openPMForm()"><div class="home-icon">📝</div><b>บันทึกงาน PM</b><p class="muted">ถ่ายรูปก่อน-หลัง + Comment</p></div>
+
+      <div class="card home-card" data-write onclick="openAbnormalForm()"><div class="home-icon">⚠</div><b>บันทึกปัญหาผิดปกติ</b><p class="muted">แจ้ง Alarm / อาการผิดปกติ</p></div>
+
+      <div class="card home-card" onclick="goFollowUp()"><div class="home-icon">🔁</div><b>Follow-up เคสค้าง</b><p class="muted" id="hm2"></p></div>
+
+      <div class="card home-card" onclick="showPage('planpm')"><div class="home-icon">📅</div><b>แผนงาน PM</b><p class="muted" id="hm3"></p></div>
+
+      <div class="card home-card" onclick="showPage('dash1')"><div class="home-icon">📊</div><b>Dashboard PM</b><p class="muted" id="hm4"></p></div>
+
+      <div class="card home-card" onclick="showPage('dash2')"><div class="home-icon">📈</div><b>Dashboard ปัญหา</b><p class="muted" id="hm5"></p></div>
+
+      <div class="card home-card" data-admin onclick="showPage('admin')"><div class="home-icon">⚙</div><b>จัดการระบบ</b><p class="muted">เครื่องจักร / งาน PM / ผู้ใช้</p></div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- PM LIST -->
+
+<div id="pmlist" class="page">
+
+  <div class="card">
+
+    <div class="flex-between"><h2>รายการงาน PM (เดือนนี้ + ค้างสะสม)</h2><button class="btn small" data-write onclick="openPMForm()">+ บันทึก PM นอกแผน</button></div>
+
+    <input id="pmSearch" placeholder="🔍 ค้นหางาน / เครื่องจักร / ผู้ทำ..." oninput="renderPMList()">
+
+    <div class="table-wrap"><table>
+
+      <thead><tr><th>วันที่ตามแผน</th><th>เครื่องจักร</th><th>กิจกรรม</th><th>ผู้ทำ</th><th>สถานะ</th><th></th></tr></thead>
+
+      <tbody id="pmListBody"></tbody>
+
+    </table></div>
+
+  </div>
+
+</div>
+
+
+<!-- PM FORM -->
+
+<div id="pmform" class="page">
+
+  <div class="card">
+
+    <h2>บันทึกงาน PM</h2>
+
+    <div class="muted" id="pm_who" style="margin-bottom:10px"></div>
+
+    <label>งาน PM (เลือกจากรายการงาน)</label>
+
+    <select id="pm_job" onchange="onPMJobChange()"></select>
+
+    <div id="pm_hint" class="muted" style="margin:-6px 0 12px"></div>
+
+    <div class="grid2">
+
+      <div><label>เครื่องจักร (พิมพ์เพื่อค้นหา)</label><input id="pm_machine" class="mpick" autocomplete="off" placeholder="เช่น air comp 1"></div>
+
+      <div><label>วันที่ทำ</label><input type="date" id="pm_date"></div>
+
+    </div>
+
+    <label>กิจกรรม</label>
+
+    <input id="pm_activity">
+
+    <div class="grid2">
+
+      <div><label>รูปก่อนทำ</label>
+
+        <div class="upload-box" id="boxBefore" onclick="$('fileBefore').click()"></div>
+
+        <input type="file" id="fileBefore" accept="image/*" hidden onchange="pickPhoto('fileBefore','boxBefore')"></div>
+
+      <div><label>รูปหลังทำ</label>
+
+        <div class="upload-box" id="boxAfter" onclick="$('fileAfter').click()"></div>
+
+        <input type="file" id="fileAfter" accept="image/*" hidden onchange="pickPhoto('fileAfter','boxAfter')"></div>
+
+    </div>
+
+    <br>
+
+    <label>Comment / ความผิดปกติที่พบ</label>
+
+    <textarea id="pm_comment" rows="3" placeholder="เช่น พบสนิมเล็กน้อยบริเวณ..."></textarea>
+
+    <label class="inline"><input type="checkbox" id="pm_flag"> แจ้งเป็นเหตุการณ์ผิดปกติ (Abnormal) ด้วย</label><br><br>
+
+    <button class="btn" onclick="savePM(this)">บันทึก</button>
+
+    <button class="btn secondary" onclick="showPage('pmlist')">ยกเลิก</button>
+
+  </div>
+
+</div>
+
+
+<!-- ABNORMAL FORM -->
+
+<div id="abnormal" class="page">
+
+  <div class="card">
+
+    <h2>บันทึกเหตุการณ์ผิดปกติ</h2>
+
+    <label>เครื่องจักร (พิมพ์เพื่อค้นหา)</label>
+
+    <input id="ab_machine" class="mpick" autocomplete="off" placeholder="เช่น chiller 2">
+
+    <label>Alarm / อาการที่พบ</label>
+
+    <textarea id="ab_alarm" rows="2" placeholder="เช่น High Pressure Alarm ที่หน้าจอ..."></textarea>
+
+    <label>รูปถ่าย Alarm</label>
+
+    <div class="upload-box" id="boxAlarm" onclick="$('fileAlarm').click()"></div>
+
+    <input type="file" id="fileAlarm" accept="image/*" hidden onchange="pickPhoto('fileAlarm','boxAlarm')"><br>
+
+    <label>ระดับความรุนแรง</label>
+
+    <div class="radio-group">
+
+      <label><input type="radio" name="sev" value="ต่ำ"> ต่ำ</label>
+
+      <label><input type="radio" name="sev" value="กลาง"> กลาง</label>
+
+      <label><input type="radio" name="sev" value="สูง" checked> สูง</label>
+
+      <label><input type="radio" name="sev" value="วิกฤต"> วิกฤต</label>
+
+    </div>
+
+    <label>วิธีแก้ปัญหาเบื้องต้น (พนักงานกะ)</label>
+
+    <textarea id="ab_fix" rows="2" placeholder="เช่น Reset Alarm และตรวจสอบวาล์ว..."></textarea>
+
+    <div class="muted" style="margin-bottom:12px">💡 หลังบันทึก สามารถเพิ่มวิธีแก้ / Follow-up ต่อได้ที่ Dashboard ปัญหา (คลิกที่เคส) จนกว่าจะปิดเคส</div>
+
+    <button class="btn" onclick="saveAbnormal(this)">บันทึก</button>
+
+    <button class="btn secondary" onclick="showPage('home')">ยกเลิก</button>
+
+  </div>
+
+</div>
+
+
+<!-- PLAN PM -->
+
+<div id="planpm" class="page">
+
+  <div class="card">
+
+    <div class="flex-between">
+
+      <h2>ปฏิทินแผนงาน PM</h2>
+
+      <div class="btn-row">
+
+        <button class="btn secondary small active" id="btnMonth" onclick="setViewMode('month')">รายเดือน</button>
+
+        <button class="btn secondary small" id="btnWeek" onclick="setViewMode('week')">รายสัปดาห์</button>
+
+        <button class="btn secondary small" id="btnAdminToggle" style="display:none" onclick="toggleAdminMode()">🔧 โหมดวางแผน (Admin)</button>
+
+      </div>
+
+    </div>
+
+    <div class="flex-between" style="margin-top:10px">
+
+      <button class="btn secondary small" onclick="changeCalPeriod(-1)">‹ ก่อนหน้า</button>
+
+      <h3 id="calTitle" style="margin:0"></h3>
+
+      <button class="btn secondary small" onclick="changeCalPeriod(1)">ถัดไป ›</button>
+
+    </div>
+
+    <div class="scroll-x" id="calendarContainer" style="margin-top:14px"></div>
+
+    <div class="row-count">📌 ตามแผน &nbsp; ✅ เสร็จ &nbsp; 🕓 รอตรวจ &nbsp; ⚠ เลยกำหนด &nbsp;|&nbsp; คลิกที่วันเพื่อดูรายละเอียด &nbsp;|&nbsp; ผู้ทำงานจะถูกบันทึกตามผู้ที่ Login ตอนบันทึก PM</div>
+
+  </div>
+
+
+  <div class="card" id="adminSection" style="display:none">
+
+    <h2>วางแผนงาน PM (Admin) — เดือนเป้าหมาย: <span id="adminMonthLabel"></span></h2>
+
+    <div class="muted">รายการงานทั้งหมดแก้ไขได้ที่ <a href="#" onclick="showPage('admin');setAdminTab('jobs');return false">⚙ จัดการระบบ → งาน PM</a> (แผนนี้ไม่ระบุผู้ทำ)</div>
+
+    <div class="table-wrap"><table>
+
+      <thead><tr><th>Job Name</th><th>Machine</th><th>Location</th><th>Frequency</th><th>วันเริ่มต้น (ถ้ายังไม่มีประวัติ)</th><th>ล่าสุดก่อนเดือนนี้ (ระบบ)</th></tr></thead>
+
+      <tbody id="planJobsBody"></tbody>
+
+    </table></div>
+
+    <div class="btn-row" style="margin-top:10px">
+
+      <button class="btn" onclick="makeMyPlan()">🪄 Make my plan</button>
+
+      <button class="btn secondary" onclick="savePlanToServer(this)">💾 บันทึกแผนลงระบบ</button>
+
+    </div>
+
+    <div class="dirty-note" id="planDirtyNote">⚠ แผนที่เห็นในปฏิทินเป็นร่าง ยังไม่ได้บันทึก กด "บันทึกแผนลงระบบ" เพื่อยืนยัน</div>
+
+    <div class="plan-report" id="planMsg"></div>
+
+  </div>
+
+</div>
+
+
+<!-- DASHBOARD PM -->
+
+<div id="dash1" class="page">
+
+  <div class="card">
+
+    <div class="flex-between"><h2>Dashboard สรุปงาน PM</h2>
+
+      <div class="btn-row"><button class="btn secondary small" onclick="exportPM()">⬇ Export CSV</button><button class="btn secondary small" onclick="window.print()">🖨 พิมพ์ / PDF</button></div></div>
+
+    <div class="grid4">
+
+      <div class="card stat"><div class="num" id="pmDone">-</div><div class="label">เสร็จ</div></div>
+
+      <div class="card stat"><div class="num" id="pmWait">-</div><div class="label">รอตรวจ</div></div>
+
+      <div class="card stat"><div class="num" id="pmPending">-</div><div class="label">ค้าง (ยังไม่ถึงกำหนด/วันนี้)</div></div>
+
+      <div class="card stat"><div class="num" id="pmOverdue">-</div><div class="label">Overdue</div></div>
+
+    </div>
+
+  </div>
+
+  <div class="grid2">
+
+    <div class="card"><h2>ผลงานแต่ละกะ (PM ที่บันทึกแล้ว ตาม Filter)</h2><div id="shiftBars"></div></div>
+
+    <div class="card"><h2>ผลงานรายบุคคล (ตาม Filter)</h2>
+
+      <div class="table-wrap"><table><thead><tr><th>ผู้ปฏิบัติงาน</th><th>กะ</th><th>เสร็จ</th><th>รอตรวจ</th><th>รวม</th></tr></thead><tbody id="userPerfBody"></tbody></table></div></div>
+
+  </div>
+
+  <div class="card">
+
+    <h2>ตารางรายการ PM (Filter ได้)</h2>
+
+    <div class="filter-bar">
+
+      <div class="filter-group"><label>กะ</label><select id="f1_shift" onchange="renderPM()"><option value="">ทั้งหมด</option><option>A</option><option>B</option><option>C</option><option>D</option></select></div>
+
+      <div class="filter-group"><label>เครื่องจักร (พิมพ์ค้นหา)</label><input id="f1_machine" class="mpick" data-all="1" autocomplete="off" placeholder="ทั้งหมด" oninput="renderPM()"></div>
+
+      <div class="filter-group"><label>ผู้ปฏิบัติงาน</label><select id="f1_user" onchange="renderPM()"></select></div>
+
+      <div class="filter-group"><label>สถานะ</label><select id="f1_status" onchange="renderPM()"><option value="">ทั้งหมด</option><option>เสร็จ</option><option>รอตรวจ</option><option>ค้าง</option><option>Overdue</option></select></div>
+
+      <div class="filter-group"><label>ตั้งแต่วันที่</label><input type="date" id="f1_from" onchange="renderPM()"></div>
+
+      <div class="filter-group"><label>ถึงวันที่</label><input type="date" id="f1_to" onchange="renderPM()"></div>
+
+      <div class="filter-group"><button class="btn secondary small" onclick="resetPM()">ล้าง Filter</button></div>
+
+    </div>
+
+    <div class="table-wrap"><table>
+
+      <thead><tr>
+
+        <th class="sortable" onclick="sortBy('pm','date')">วันที่ ⬍</th>
+
+        <th class="sortable" onclick="sortBy('pm','shift')">กะ ⬍</th>
+
+        <th class="sortable" onclick="sortBy('pm','machine')">เครื่องจักร ⬍</th>
+
+        <th class="sortable" onclick="sortBy('pm','activity')">กิจกรรม ⬍</th>
+
+        <th class="sortable" onclick="sortBy('pm','status')">สถานะ ⬍</th>
+
+        <th class="sortable" onclick="sortBy('pm','user')">ผู้ทำ ⬍</th>
+
+      </tr></thead>
+
+      <tbody id="pmTableBody"></tbody>
+
+    </table></div>
+
+    <div class="row-count" id="pmCount"></div>
+
+  </div>
+
+</div>
+
+
+<!-- DASHBOARD PROBLEM -->
+
+<div id="dash2" class="page">
+
+  <div class="card">
+
+    <div class="flex-between"><h2>Dashboard สรุปปัญหา</h2>
+
+      <div class="btn-row"><button class="btn secondary small" onclick="exportProblem()">⬇ Export CSV</button><button class="btn secondary small" onclick="window.print()">🖨 พิมพ์ / PDF</button></div></div>
+
+    <div class="grid4">
+
+      <div class="card stat"><div class="num" id="probTotal">-</div><div class="label">เคสทั้งหมด (ตาม Filter)</div></div>
+
+      <div class="card stat"><div class="num" id="probCritical">-</div><div class="label">เคสวิกฤต</div></div>
+
+      <div class="card stat"><div class="num" id="probOpen">-</div><div class="label">ยังไม่ปิดเคส</div></div>
+
+      <div class="card stat"><div class="num" id="probFU">-</div><div class="label">มีการ Follow-up แล้ว</div></div>
+
+    </div>
+
+  </div>
+
+  <div class="card"><h2>Top 5 เครื่องจักรที่มีปัญหาบ่อย (Pareto)</h2><div id="paretoBars"></div></div>
+
+  <div class="card">
+
+    <h2>ตารางเหตุการณ์ผิดปกติ (คลิกที่แถวเพื่อดู Timeline / เพิ่ม Follow-up)</h2>
+
+    <div class="filter-bar">
+
+      <div class="filter-group"><label>ช่วงเวลา</label><select id="f2_period" onchange="renderProblem()"><option value="">ทั้งหมด / กำหนดเอง</option><option value="week">7 วันล่าสุด</option><option value="month">เดือนนี้</option></select></div>
+
+      <div class="filter-group"><label>ตั้งแต่วันที่</label><input type="date" id="f2_from" onchange="renderProblem()"></div>
+
+      <div class="filter-group"><label>ถึงวันที่</label><input type="date" id="f2_to" onchange="renderProblem()"></div>
+
+      <div class="filter-group"><label>กะ</label><select id="f2_shift" onchange="renderProblem()"><option value="">ทั้งหมด</option><option>A</option><option>B</option><option>C</option><option>D</option></select></div>
+
+      <div class="filter-group"><label>เครื่องจักร (พิมพ์ค้นหา)</label><input id="f2_machine" class="mpick" data-all="1" autocomplete="off" placeholder="ทั้งหมด" oninput="renderProblem()"></div>
+
+      <div class="filter-group"><label>ผู้แจ้ง</label><select id="f2_user" onchange="renderProblem()"></select></div>
+
+      <div class="filter-group"><label>ความรุนแรง</label><select id="f2_severity" onchange="renderProblem()"><option value="">ทั้งหมด</option><option>ต่ำ</option><option>กลาง</option><option>สูง</option><option>วิกฤต</option></select></div>
+
+      <div class="filter-group"><label>สถานะเคส</label><select id="f2_status" onchange="renderProblem()"><option value="">ทั้งหมด</option><option value="__open">ยังไม่ปิดทั้งหมด</option><option>เปิดเคส</option><option>กำลังแก้ไข</option><option>รอ Maintenance</option><option>ปิดเคส</option></select></div>
+
+      <div class="filter-group"><button class="btn secondary small" onclick="resetProblem()">ล้าง Filter</button></div>
+
+    </div>
+
+    <div class="table-wrap"><table>
+
+      <thead><tr>
+
+        <th class="sortable" onclick="sortBy('prob','date')">วันที่ ⬍</th>
+
+        <th class="sortable" onclick="sortBy('prob','shift')">กะ ⬍</th>
+
+        <th class="sortable" onclick="sortBy('prob','machine')">เครื่องจักร ⬍</th>
+
+        <th>Alarm/อาการ</th>
+
+        <th class="sortable" onclick="sortBy('prob','severity')">ความรุนแรง ⬍</th>
+
+        <th class="sortable" onclick="sortBy('prob','status')">สถานะ ⬍</th>
+
+        <th class="sortable" onclick="sortBy('prob','reporter')">ผู้แจ้ง ⬍</th>
+
+        <th class="sortable" onclick="sortBy('prob','fu')">Follow-up ⬍</th>
+
+      </tr></thead>
+
+      <tbody id="probTableBody"></tbody>
+
+    </table></div>
+
+    <div class="row-count" id="probCount"></div>
+
+  </div>
+
+</div>
+
+
+<!-- ADMIN -->
+
+<div id="admin" class="page">
+
+  <div class="card">
+
+    <h2>⚙ จัดการระบบ (Admin)</h2>
+
+    <div class="tabs">
+
+      <button class="btn secondary small" id="tabBtn_machines" onclick="setAdminTab('machines')">🏭 เครื่องจักร</button>
+
+      <button class="btn secondary small" id="tabBtn_jobs" onclick="setAdminTab('jobs')">🛠 งาน PM</button>
+
+      <button class="btn secondary small" id="tabBtn_users" onclick="setAdminTab('users')">👥 ผู้ใช้งาน</button>
+
+    </div>
+
+
+    <div id="tab_machines">
+
+      <div class="filter-bar">
+
+        <div class="filter-group"><label>ค้นหา</label><input id="am_q" placeholder="ชื่อ / ตำแหน่ง" oninput="renderAdminMachines()"></div>
+
+        <div class="filter-group"><label>ระบบ</label><select id="am_sys" onchange="renderAdminMachines()"></select></div>
+
+        <div class="filter-group"><label>สถานะ</label><select id="am_st" onchange="renderAdminMachines()"><option value="">ทั้งหมด</option><option value="on">ใช้งาน</option><option value="off">ปิดใช้งาน</option></select></div>
+
+        <div class="filter-group"><button class="btn small" onclick="openMachineForm()">+ เพิ่มเครื่องจักร</button></div>
+
+      </div>
+
+      <div class="table-wrap"><table><thead><tr><th>ชื่อเครื่องจักร</th><th>ระบบ</th><th>ตำแหน่ง</th><th>งาน PM</th><th>PM ที่บันทึก</th><th>เคสปัญหา</th><th>สถานะ</th><th></th></tr></thead><tbody id="amBody"></tbody></table></div>
+
+      <div class="row-count" id="amCount"></div>
+
+    </div>
+
+
+    <div id="tab_jobs" style="display:none">
+
+      <div class="filter-bar">
+
+        <div class="filter-group"><label>ค้นหางาน</label><input id="aj_q" placeholder="ชื่องาน / รายละเอียด" oninput="renderAdminJobs()"></div>
+
+        <div class="filter-group"><label>เครื่องจักร</label><input id="aj_m" class="mpick" data-all="1" autocomplete="off" placeholder="ทั้งหมด" oninput="renderAdminJobs()"></div>
+
+        <div class="filter-group"><label>ความถี่</label><select id="aj_f" onchange="renderAdminJobs()"><option value="">ทั้งหมด</option><option value="days">ทุก N วัน</option><option value="weekday">วันในสัปดาห์</option></select></div>
+
+        <div class="filter-group"><label>สถานะ</label><select id="aj_st" onchange="renderAdminJobs()"><option value="">ทั้งหมด</option><option value="on">ใช้งาน</option><option value="off">ปิดใช้งาน</option></select></div>
+
+        <div class="filter-group"><button class="btn small" onclick="openJobForm()">+ เพิ่มงาน PM</button></div>
+
+      </div>
+
+      <div class="table-wrap"><table><thead><tr><th>งาน PM</th><th>เครื่องจักร</th><th>ตำแหน่ง</th><th>ความถี่</th><th>ทำล่าสุด (ระบบ)</th><th>วันเริ่มต้น</th><th>สถานะ</th><th></th></tr></thead><tbody id="ajBody"></tbody></table></div>
+
+      <div class="row-count" id="ajCount"></div>
+
+    </div>
+
+
+    <div id="tab_users" style="display:none">
+
+      <div class="filter-bar">
+
+        <div class="filter-group"><label>ค้นหา (ID / ชื่อ)</label><input id="au_q" placeholder="พิมพ์ค้นหา" oninput="renderAdminUsers()"></div>
+
+        <div class="filter-group"><label>Role</label><select id="au_r" onchange="renderAdminUsers()"></select></div>
+
+        <div class="filter-group"><label>กะ</label><select id="au_s" onchange="renderAdminUsers()"><option value="">ทั้งหมด</option><option>A</option><option>B</option><option>C</option><option>D</option></select></div>
+
+        <div class="filter-group"><label>สถานะ</label><select id="au_st" onchange="renderAdminUsers()"><option value="">ทั้งหมด</option><option value="on">ใช้งาน</option><option value="off">ปิดใช้งาน</option></select></div>
+
+        <div class="filter-group"><button class="btn small" onclick="openUserForm()">+ เพิ่มผู้ใช้</button></div>
+
+      </div>
+
+      <div class="table-wrap"><table><thead><tr><th>User ID</th><th>ชื่อ</th><th>Role</th><th>กะ</th><th>PM ที่บันทึก</th><th>เคสที่แจ้ง</th><th>สถานะ</th><th></th></tr></thead><tbody id="auBody"></tbody></table></div>
+
+      <div class="row-count" id="auCount"></div>
+
+    </div>
+
+  </div>
+
+</div>
+
+</div><!-- /appView -->
+
+
+<div id="modal" class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal-box" id="modalBox"></div></div>
+
+<datalist id="systemList"></datalist>
+
+<div id="toast"></div>
+
+
+<script>
+
+/* ============================ CONFIG ============================ */
+
+const API_URL = 'https://script.google.com/macros/s/AKfycbz0qYCbhaaxZvQt7iX4ga3jrDatNCB8Ay1FRt1ybporNAvabnkd2sVyPcPk5UjFCkA/exec';            // ใส่ URL ของ Apps Script Web App (ลงท้าย /exec) เมื่อพร้อมใช้งานจริง; เว้นว่าง = โหมดทดสอบ
+
+const USE_MOCK = !API_URL;
+
+const HOLIDAYS = [];           // วันหยุดบริษัท เช่น ['2025-04-14'] จะถูกเลื่อนเหมือนเสาร์-อาทิตย์
+
+const SHIFTS = ['A','B','C','D'];
+
+const ROLES = {admin:'Admin',supervisor:'หัวหน้ากะ',maintenance:'Maintenance',operator:'พนักงานกะ',viewer:'ผู้บริหาร (ดูอย่างเดียว)'};
+
+const WRITERS = ['operator','supervisor','maintenance','admin'];
+
+const PRIV = ['supervisor','maintenance','admin'];
+
+const CASE_STATUS = ['เปิดเคส','กำลังแก้ไข','รอ Maintenance','ปิดเคส'];
+
+const TH_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+
+const DOW_SHORT = ['อา','จ','อ','พ','พฤ','ศ','ส'];
+
+const DOW_FULL  = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+
+const SEV_RANK  = {'ต่ำ':1,'กลาง':2,'สูง':3,'วิกฤต':4};
+
+
+/* ============================ HELPERS ============================ */
+
+const $ = id => document.getElementById(id);
+
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+const uid = () => (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : 'id' + Date.now() + Math.random().toString(16).slice(2);
+
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+
+function fmt(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+
+function parseDate(s){ const [y,m,d] = String(s).slice(0,10).split('-').map(Number); return new Date(y, m-1, d); }
+
+function addDays(d,n){ return new Date(d.getFullYear(), d.getMonth(), d.getDate()+n); }
+
+function todayStr(){ return fmt(new Date()); }
+
+function nowTs(){ const d=new Date(); return fmt(d)+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+':'+String(d.getSeconds()).padStart(2,'0'); }
+
+function thDate(s){ const d = parseDate(s); return `${d.getDate()} ${TH_MONTHS[d.getMonth()]} ${d.getFullYear()+543}`; }
+
+function thDateTime(ts){ return thDate(ts) + ' ' + String(ts).slice(11,16); }
+
+function isOff(d){ return d.getDay()===0 || d.getDay()===6 || HOLIDAYS.includes(fmt(d)); }
+
+function shiftBack(d){ let x = new Date(d); while(isOff(x)) x = addDays(x,-1); return x; }
+
+function firstWorkday(d){ let x = new Date(d); while(isOff(x)) x = addDays(x,1); return x; }
+
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.style.display='block'; clearTimeout(t._h); t._h=setTimeout(()=>t.style.display='none',3000); }
+
+const norm = s => String(s ?? '').toLowerCase().replace(/[\s_\-\.#\/()]+/g,'');
+
+const can = (...roles) => !!ME && roles.includes(ME.role);
+
+const canWrite = () => can(...WRITERS);
+
+const isPriv = () => can(...PRIV);
+
+
+/* ============================ MACHINE PICKER (พิมพ์แล้วแนะนำชื่อใกล้เคียง) ============================ */
+
+function lev(a,b){
+
+  const m=a.length,n=b.length; if(!m) return n; if(!n) return m;
+
+  let prev=Array.from({length:n+1},(_,i)=>i);
+
+  for(let i=1;i<=m;i++){ const cur=[i]; for(let j=1;j<=n;j++) cur[j]=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1)); prev=cur; }
+
+  return prev[n];
+
+}
+
+function mScore(q,name){
+
+  const k=norm(q), n=norm(name); if(!k) return 1;
+
+  if(n===k) return 100;
+
+  if(n.startsWith(k)) return 90;
+
+  if(n.includes(k)) return 80;
+
+  const toks=String(q).toLowerCase().split(/[\s_\-\.#\/]+/).filter(Boolean), nl=String(name).toLowerCase();
+
+  if(toks.length>1 && toks.every(t=>nl.includes(t))) return 70;
+
+  let i=0; for(const ch of n){ if(ch===k[i]) i++; if(i===k.length) break; }
+
+  if(k.length>=2 && i===k.length) return 55;
+
+  const d=Math.min(lev(k,n), lev(k,n.slice(0,k.length)));
+
+  if(k.length>=3 && d<=Math.max(1,Math.floor(k.length/4))) return 40-d;
+
+  return 0;
+
+}
+
+function machineChoices(all){
+
+  const out=new Map();
+
+  machines.forEach(m=>{ if(all||m.active) out.set(m.name,m); });
+
+  if(all) [...pmData,...problemData].forEach(r=>{ if(r.machine && !out.has(r.machine)) out.set(r.machine,{name:r.machine,system:'',location:'',active:true}); });
+
+  return [...out.values()];
+
+}
+
+function resolveMachine(text, allowName){
+
+  const k=norm(text); if(!k) return null;
+
+  const hit=machines.find(m=>norm(m.name)===k && (m.active || m.name===allowName));
+
+  return hit ? hit.name : null;
+
+}
+
+function suggestText(text){
+
+  const l=machineChoices(false).map(m=>({m,s:mScore(text,m.name)})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s).slice(0,3).map(x=>x.m.name);
+
+  return l.length ? ` (ใกล้เคียง: ${l.join(', ')})` : '';
+
+}
+
+const mpDrop=document.createElement('div'); mpDrop.id='mpDrop'; document.body.appendChild(mpDrop);
+
+let mpInput=null, mpItems=[], mpIdx=-1, mpBusy=false;
+
+function mpPos(){
+
+  if(!mpInput) return; const r=mpInput.getBoundingClientRect();
+
+  mpDrop.style.left=r.left+'px'; mpDrop.style.top=(r.bottom+2)+'px'; mpDrop.style.width=Math.max(r.width,260)+'px';
+
+}
+
+function mpShow(inp){
+
+  mpInput=inp;
+
+  const q=inp.value.trim(), all=inp.dataset.all==='1';
+
+  const list=machineChoices(all).map(m=>({m,s:mScore(q,m.name)})).filter(x=>x.s>0)
+
+    .sort((a,b)=>b.s-a.s||a.m.name.localeCompare(b.m.name,'th')).slice(0,8);
+
+  mpItems=list.map(x=>x.m.name); mpIdx=-1;
+
+  let h='';
+
+  if(q && !list.length) h='<div class="mp-hint">ไม่พบเครื่องจักรที่ใกล้เคียง — ให้ Admin เพิ่มที่ "จัดการระบบ → เครื่องจักร"</div>';
+
+  else{
+
+    if(q && list[0].s<80) h+='<div class="mp-hint">ชื่อใกล้เคียงกับที่พิมพ์ — เลือกจากรายการ</div>';
+
+    h+=list.map((x,i)=>`<div class="mp-item" data-i="${i}"><b>${esc(x.m.name)}</b><small>${esc([x.m.system,x.m.location].filter(Boolean).join(' · '))}${x.m.active?'':' · (ปิดใช้งาน)'}</small></div>`).join('');
+
+  }
+
+  mpDrop.innerHTML=h; mpPos(); mpDrop.style.display=h?'block':'none';
+
+}
+
+function mpHide(){ mpDrop.style.display='none'; mpIdx=-1; }
+
+function mpPick(name){
+
+  if(!mpInput) return;
+
+  mpBusy=true; mpInput.value=name;
+
+  mpInput.dispatchEvent(new Event('input',{bubbles:true})); mpInput.dispatchEvent(new Event('change',{bubbles:true}));
+
+  mpBusy=false; mpHide();
+
+}
+
+document.addEventListener('input',e=>{ if(!mpBusy && e.target.classList && e.target.classList.contains('mpick')) mpShow(e.target); });
+
+document.addEventListener('focusin',e=>{ if(e.target.classList && e.target.classList.contains('mpick')) mpShow(e.target); });
+
+document.addEventListener('focusout',e=>{ if(e.target===mpInput) setTimeout(mpHide,150); });
+
+document.addEventListener('keydown',e=>{
+
+  if(!mpInput || e.target!==mpInput || mpDrop.style.display!=='block') return;
+
+  const els=mpDrop.querySelectorAll('.mp-item');
+
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){
+
+    e.preventDefault(); if(!els.length) return;
+
+    mpIdx=(mpIdx+(e.key==='ArrowDown'?1:-1)+els.length)%els.length;
+
+    els.forEach((x,i)=>x.classList.toggle('sel',i===mpIdx)); els[mpIdx].scrollIntoView({block:'nearest'});
+
+  }else if(e.key==='Enter' && mpIdx>=0){ e.preventDefault(); mpPick(mpItems[mpIdx]); }
+
+  else if(e.key==='Escape') mpHide();
+
+});
+
+mpDrop.addEventListener('mousedown',e=>{ e.preventDefault(); const it=e.target.closest('.mp-item'); if(it) mpPick(mpItems[+it.dataset.i]); });
+
+window.addEventListener('scroll',e=>{ if(mpDrop.style.display==='block' && !mpDrop.contains(e.target)) mpPos(); },true);
+
+window.addEventListener('resize',mpPos);
+
+
+/* ============================ API (จริง / Mock) ============================ */
+
+let TOKEN = localStorage.getItem('token');
+
+let ME = JSON.parse(localStorage.getItem('me') || 'null');
+
+
+async function api(action, payload = {}){
+
+  if(USE_MOCK) return mockApi(action, payload);
+
+  const res = await fetch(API_URL, {
+
+    method:'POST',
+
+    headers:{'Content-Type':'text/plain;charset=utf-8'},   // เลี่ยง CORS preflight ของ Apps Script
+
+    body: JSON.stringify({action, token:TOKEN, ...payload})
+
+  });
+
+  const j = await res.json();
+
+  if(!j.ok){ if(/Session/.test(j.error)) logout(true); throw new Error(j.error); }
+
+  return j.data;
+
+}
+
+
+const MOCK_KEY = 'utilitypm_mockdb_v2';
+
+let MOCKDB = null;
+
+function seedMock(){
+
+  const t=new Date(), m=t.getMonth(), y=t.getFullYear();
+
+  const D=(mo,d)=>fmt(new Date(y,mo,d)), ago=n=>fmt(addDays(t,-n));
+
+  const rec=(date,shift,machine,activity,jobId,status,u,un,comment='')=>({id:uid(),timestamp:date+' 10:00:00',date,shift,machine,activity,jobId,status,userId:u,userName:un,comment,photoBeforeId:'',photoAfterId:''});
+
+  const cs=(id,date,shift,machine,alarm,sev,status,fix,u,un,last)=>({id,timestamp:date+' 09:00:00',date,shift,machine,alarm,photoId:'',severity:sev,initialFix:fix,status,reportedById:u,reportedBy:un,lastUpdate:last||date+' 09:00:00'});
+
+  const up=(caseId,date,hhmm,u,un,role,note,st)=>({id:uid(),caseId,timestamp:date+' '+hhmm+':00',userId:u,userName:un,role,note,statusAfter:st});
+
+  const c1=uid(),c2=uid(),c3=uid(),c4=uid(),c5=uid();
+
+  const usr=(username,name,role,shift)=>({username,password:'1234',name,role,shift,active:'Y'});
+
+  const job=(id,jobName,machine,location,freqType,freqDays,freqWeekdays,detail)=>({id,jobName,machine,location,freqType,freqDays,freqWeekdays,startDate:'',active:'Y',detail});
+
+  return {
+
+    Users:[usr('admin','Administrator','admin',''),usr('supervisor','หัวหน้ากะ ทดสอบ','supervisor','A'),usr('maintenance','ช่าง Maintenance','maintenance',''),usr('viewer','ผู้บริหาร','viewer',''),
+
+           usr('somchai','สมชาย','operator','A'),usr('somying','สมหญิง','operator','B'),usr('somsak','สมศักดิ์','operator','C'),usr('mana','มานะ','operator','D')],
+
+    Machines:[
+
+      {id:'M1',name:'Air Compressor #1',system:'Air System',location:'Utility Room 1',active:'Y'},
+
+      {id:'M2',name:'Air Compressor #2',system:'Air System',location:'Utility Room 1',active:'Y'},
+
+      {id:'M3',name:'Air Dryer #1',system:'Air System',location:'Utility Room 1',active:'Y'},
+
+      {id:'M4',name:'Chiller #2',system:'Chilled Water',location:'Utility Room 2',active:'Y'},
+
+      {id:'M5',name:'Cooling Tower #1',system:'Cooling Water',location:'Rooftop',active:'Y'},
+
+      {id:'M6',name:'Boiler #1',system:'Steam',location:'Boiler Room',active:'Y'}],
+
+    PM_Jobs:[
+
+      job('J1','ทำความสะอาด Strainer','Air Compressor #1','Utility Room 1','days',15,'','ถอด Strainer ล้างด้วยน้ำสะอาด ถ่ายรูปก่อน-หลัง'),
+
+      job('J2','ตรวจสอบแรงดัน Chiller','Chiller #2','Utility Room 2','days',30,'','บันทึกค่า Suction/Discharge Pressure'),
+
+      job('J3','เช็คสาย Belt','Cooling Tower #1','Rooftop','weekday','','1,4','ตรวจความตึงและรอยสึก'),
+
+      job('J4','ตรวจ Safety Valve','Boiler #1','Boiler Room','days',7,'','ตรวจการรั่วซึมและสภาพภายนอก')],
+
+    PM_Records:[
+
+      rec(D(m-1,20),'A','Air Compressor #1','ทำความสะอาด Strainer','J1','เสร็จ','somchai','สมชาย'),
+
+      rec(D(m-1,15),'B','Chiller #2','ตรวจสอบแรงดัน Chiller','J2','เสร็จ','somying','สมหญิง'),
+
+      rec(D(m-1,28),'C','Cooling Tower #1','เช็คสาย Belt','J3','เสร็จ','somsak','สมศักดิ์'),
+
+      rec(D(m-1,25),'D','Boiler #1','ตรวจ Safety Valve','J4','เสร็จ','mana','มานะ'),
+
+      rec(ago(2),'D','Boiler #1','ตรวจ Safety Valve','J4','รอตรวจ','mana','มานะ','พบคราบน้ำมันเล็กน้อย'),
+
+      rec(ago(1),'A','Air Compressor #1','เปลี่ยนไส้กรองน้ำมัน','','เสร็จ','somchai','สมชาย')],
+
+    Abnormal_Events:[
+
+      cs(c1,ago(1),'A','Air Compressor #1','High Pressure Alarm','สูง','ปิดเคส','Reset Alarm และตรวจวาล์ว','somchai','สมชาย',ago(1)+' 15:00:00'),
+
+      cs(c2,ago(3),'B','Chiller #2','Low Temp Alarm','กลาง','กำลังแก้ไข','ปรับ Set point','somying','สมหญิง',ago(2)+' 10:30:00'),
+
+      cs(c3,ago(5),'C','Boiler #1','Flame Failure','วิกฤต','รอ Maintenance','Shutdown และแจ้งหัวหน้า','somsak','สมศักดิ์',ago(4)+' 08:00:00'),
+
+      cs(c4,ago(9),'D','Cooling Tower #1','Vibration สูงผิดปกติ','กลาง','เปิดเคส','','mana','มานะ'),
+
+      cs(c5,ago(12),'A','Air Compressor #1','Motor Overload','สูง','เปิดเคส','','somchai','สมชาย')],
+
+    Case_Updates:[
+
+      up(c1,ago(1),'15:00','maintenance','ช่าง Maintenance','maintenance','เปลี่ยน Pressure Switch เรียบร้อย ทดสอบแล้วปกติ','ปิดเคส'),
+
+      up(c2,ago(2),'10:30','somying','สมหญิง','operator','ปรับ Set point เพิ่ม 1°C ติดตามต่อกะถัดไป','กำลังแก้ไข'),
+
+      up(c3,ago(4),'08:00','somsak','สมศักดิ์','operator','เรียก Maintenance มาตรวจ Flame Sensor แล้ว','รอ Maintenance')],
+
+    PM_Plan:[]
+
+  };
+
+}
+
+function saveMock(){ try{ localStorage.setItem(MOCK_KEY, JSON.stringify(MOCKDB)); }catch(e){ toast('พื้นที่เก็บข้อมูลทดสอบเต็ม (รูปอาจใหญ่เกินไป)'); } }
+
+function resetMock(){ if(!confirm('ล้างข้อมูลทดสอบทั้งหมดและเริ่มใหม่?')) return; localStorage.removeItem(MOCK_KEY); MOCKDB=null; loadAll(); }
+
+
+async function mockApi(action,p){
+
+  await sleep(200);
+
+  if(!MOCKDB){ try{ MOCKDB=JSON.parse(localStorage.getItem(MOCK_KEY)); }catch(e){} if(!MOCKDB){ MOCKDB=seedMock(); saveMock(); } }
+
+  const ts=nowTs(), need=(...r)=>{ if(!can(...r)) throw new Error('ไม่มีสิทธิ์ทำรายการนี้'); };
+
+  switch(action){
+
+    case 'login': {
+
+      const u=MOCKDB.Users.find(x=>x.username===String(p.username||'').trim().toLowerCase());
+
+      if(!u || u.password!==p.password) throw new Error('Username หรือ Password ไม่ถูกต้อง');
+
+      if(u.active==='N') throw new Error('บัญชีนี้ถูกปิดใช้งาน กรุณาติดต่อ Admin');
+
+      return {token:'mock-token',user:{username:u.username,name:u.name,role:u.role,shift:u.shift}};
+
+    }
+
+    case 'bootstrap': {
+
+      const d=JSON.parse(JSON.stringify(MOCKDB));
+
+      d.users=d.Users.map(({password,...u})=>({...u,active:u.active!=='N'})); delete d.Users; return d;
+
+    }
+
+    case 'addPM':
+
+      need(...WRITERS);
+
+      if(!MOCKDB.Machines.some(m=>m.name===p.machine&&m.active!=='N')) throw new Error('ไม่พบเครื่องจักรนี้ในรายการ');
+
+      MOCKDB.PM_Records.push({id:uid(),timestamp:ts,date:p.date,shift:ME.shift||'',machine:p.machine,activity:p.activity,jobId:p.jobId||'',status:'รอตรวจ',userId:ME.username,userName:ME.name,comment:p.comment||'',photoBeforeId:p.photoBefore||'',photoAfterId:p.photoAfter||''});
+
+      saveMock(); return 'saved';
+
+    case 'addAbnormal':
+
+      need(...WRITERS);
+
+      if(!MOCKDB.Machines.some(m=>m.name===p.machine&&m.active!=='N')) throw new Error('ไม่พบเครื่องจักรนี้ในรายการ');
+
+      MOCKDB.Abnormal_Events.push({id:uid(),timestamp:ts,date:p.date,shift:ME.shift||'',machine:p.machine,alarm:p.alarm,photoId:p.photo||'',severity:p.severity,initialFix:p.initialFix||'',status:'เปิดเคส',reportedById:ME.username,reportedBy:ME.name,lastUpdate:ts});
+
+      saveMock(); return 'saved';
+
+    case 'addCaseUpdate': {
+
+      need(...WRITERS);
+
+      const note=String(p.note||'').trim(); if(!note) throw new Error('กรุณากรอกบันทึกการแก้ไข/ติดตาม');
+
+      const c=MOCKDB.Abnormal_Events.find(x=>x.id===p.caseId); if(!c) throw new Error('ไม่พบเคส');
+
+      if(c.status==='ปิดเคส' && !isPriv()) throw new Error('เคสนี้ปิดแล้ว แก้ไขได้เฉพาะหัวหน้ากะ/Maintenance/Admin');
+
+      if(p.status==='ปิดเคส' && !isPriv()) throw new Error('การปิดเคสทำได้เฉพาะหัวหน้ากะ/Maintenance/Admin');
+
+      MOCKDB.Case_Updates.push({id:uid(),caseId:p.caseId,timestamp:ts,userId:ME.username,userName:ME.name,role:ME.role,note,statusAfter:p.status});
+
+      c.status=p.status; c.lastUpdate=ts; saveMock(); return 'updated';
+
+    }
+
+    case 'approvePM': {
+
+      need('supervisor','admin'); const r=MOCKDB.PM_Records.find(x=>x.id===p.id); if(!r) throw new Error('ไม่พบรายการ');
+
+      r.status='เสร็จ'; saveMock(); return 'approved';
+
+    }
+
+    case 'upsert': case 'remove': {
+
+      need('admin'); if(!['Machines','PM_Jobs'].includes(p.sheet)) throw new Error('ไม่อนุญาต');
+
+      const arr=MOCKDB[p.sheet];
+
+      if(action==='remove'){ MOCKDB[p.sheet]=arr.filter(x=>x.id!==p.id); saveMock(); return 'removed'; }
+
+      const i=arr.findIndex(x=>x.id===p.row.id); if(i<0) arr.push(p.row); else arr[i]=p.row; saveMock(); return 'saved';
+
+    }
+
+    case 'savePlanMonth':
+
+      need('admin'); MOCKDB.PM_Plan=MOCKDB.PM_Plan.filter(x=>!String(x.date).startsWith(p.month)).concat(p.rows.filter(x=>String(x.date).startsWith(p.month)));
+
+      saveMock(); return 'saved';
+
+    case 'saveUser': {
+
+      need('admin');
+
+      const un=String(p.username||'').trim().toLowerCase();
+
+      if(!/^[a-z0-9._-]{3,30}$/.test(un)) throw new Error('Username ต้องเป็น a-z 0-9 . _ - ยาว 3-30 ตัว');
+
+      if(!String(p.name||'').trim()) throw new Error('กรุณาระบุชื่อ');
+
+      if(!ROLES[p.role]) throw new Error('Role ไม่ถูกต้อง');
+
+      if(p.role==='operator' && !SHIFTS.includes(p.shift)) throw new Error('พนักงานกะต้องระบุกะ A-D');
+
+      if(p.password && p.password.length<6) throw new Error('รหัสผ่านต้องยาวอย่างน้อย 6 ตัวอักษร');
+
+      const active=(p.active===false||p.active==='N')?'N':'Y', i=MOCKDB.Users.findIndex(x=>x.username===un);
+
+      const shift=SHIFTS.includes(p.shift)?p.shift:'';
+
+      if(i<0){ if(!p.password) throw new Error('กรุณาตั้งรหัสผ่านสำหรับผู้ใช้ใหม่'); MOCKDB.Users.push({username:un,password:p.password,name:p.name.trim(),role:p.role,shift,active}); }
+
+      else{
+
+        if(un===ME.username && (active==='N'||p.role!==ME.role)) throw new Error('ไม่สามารถปิดใช้งานหรือเปลี่ยนสิทธิ์บัญชีของตัวเองได้');
+
+        Object.assign(MOCKDB.Users[i],{name:p.name.trim(),role:p.role,shift,active}); if(p.password) MOCKDB.Users[i].password=p.password;
+
+      }
+
+      saveMock(); return 'saved';
+
+    }
+
+    case 'changePassword': {
+
+      const u=MOCKDB.Users.find(x=>x.username===ME.username);
+
+      if(u.password!==p.oldPassword) throw new Error('รหัสผ่านเดิมไม่ถูกต้อง');
+
+      if(String(p.newPassword||'').length<6) throw new Error('รหัสผ่านใหม่ต้องยาวอย่างน้อย 6 ตัวอักษร');
+
+      u.password=p.newPassword; saveMock(); return 'changed';
+
+    }
+
+  }
+
+  throw new Error('ไม่รู้จัก action');
+
+}
+
+
+/* ============================ STATE ============================ */
+
+let pmData=[], problemData=[], jobMaster=[], machines=[], users=[], updates=[], planData=[], planView=[], extraRecs=[];
+
+let calDate=new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+
+let viewMode='month', adminMode=false, saving=false, adminTab='machines';
+
+const dirtyMonths=new Set();
+
+const sortState={pm:{key:'date',asc:false}, prob:{key:'date',asc:false}};
+
+let lastPMRows=[], lastProbRows=[];
+
+
+/* ============================ AUTH / START ============================ */
+
+async function submitLogin(){
+
+  const btn=$('loginBtn'); $('loginMsg').textContent=''; btn.disabled=true;
+
+  try{
+
+    const r=await api('login',{username:$('loginUser').value.trim(),password:$('loginPass').value});
+
+    TOKEN=r.token; ME=r.user;
+
+    localStorage.setItem('token',TOKEN); localStorage.setItem('me',JSON.stringify(ME));
+
+    await startApp();
+
+  }catch(e){ $('loginMsg').textContent=e.message; }
+
+  btn.disabled=false;
+
+}
+
+function logout(expired){
+
+  localStorage.removeItem('token'); localStorage.removeItem('me'); TOKEN=null; ME=null;
+
+  $('appView').style.display='none'; $('loginView').style.display='flex'; $('loginPass').value='';
+
+  $('loginMsg').textContent = expired ? 'Session หมดอายุ กรุณา Login ใหม่' : '';
+
+}
+
+async function startApp(){
+
+  $('loginView').style.display='none'; $('appView').style.display='block';
+
+  $('userInfo').textContent=`👤 ${ME.name} (${ME.username}) | ${ROLES[ME.role]||ME.role}${ME.shift?' | Shift '+ME.shift:''}`;
+
+  document.querySelectorAll('[data-write]').forEach(e=>e.style.display=canWrite()?'':'none');
+
+  document.querySelectorAll('[data-admin]').forEach(e=>e.style.display=can('admin')?'':'none');
+
+  $('btnAdminToggle').style.display=can('admin')?'':'none';
+
+  adminMode=false; $('adminSection').style.display='none';
+
+  try{ await loadAll(); }catch(e){ toast(e.message); }
+
+  showPage('home');
+
+}
+
+async function loadAll(){
+
+  const d=await api('bootstrap');
+
+  const D=s=>String(s??'').slice(0,10);
+
+  pmData=d.PM_Records.map(r=>({...r,date:D(r.date)}));
+
+  problemData=d.Abnormal_Events.map(r=>({...r,date:D(r.date)}));
+
+  updates=d.Case_Updates;
+
+  machines=d.Machines.map(m=>({...m,active:m.active!=='N'}));
+
+  users=d.users;
+
+  jobMaster=d.PM_Jobs.map(j=>({...j,freqDays:Number(j.freqDays)||null,
+
+    freqWeekdays:String(j.freqWeekdays??'').split(',').filter(x=>x!=='').map(Number),startDate:D(j.startDate),active:j.active!=='N',detail:j.detail||''}));
+
+  const drafts=planData.filter(p=>dirtyMonths.has(p.date.slice(0,7)));      // เก็บร่างแผนที่ยังไม่บันทึกไว้
+
+  planData=d.PM_Plan.map(p=>({...p,date:D(p.date),note:p.note||''})).filter(p=>!dirtyMonths.has(p.date.slice(0,7))).concat(drafts);
+
+  renderAll();
+
+}
+
+function renderAll(){
+
+  computeStatus(); populateFilters(); renderHome(); renderPMList(); renderCalendar(); renderPlanJobs(); renderPM(); renderProblem();
+
+  if(can('admin')) renderAdmin();
+
+}
+
+function showPage(id){
+
+  if(id==='admin' && !can('admin')) return;
+
+  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===id));
+
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===id));
+
+  window.scrollTo(0,0);
+
+}
+
+const nameOf=(id,fb)=>{ const u=users.find(x=>x.username===id); return u?u.name:(fb||id||'-'); };
+
+function populateFilters(){
+
+  const ids=new Map(users.map(u=>[u.username,u.name]));
+
+  pmData.forEach(r=>r.userId&&!ids.has(r.userId)&&ids.set(r.userId,r.userName));
+
+  problemData.forEach(r=>r.reportedById&&!ids.has(r.reportedById)&&ids.set(r.reportedById,r.reportedBy));
+
+  ['f1_user','f2_user'].forEach(id=>{
+
+    const s=$(id), cur=s.value;
+
+    s.innerHTML='<option value="">ทั้งหมด</option>'+[...ids].map(([k,v])=>`<option value="${esc(k)}">${esc(v)} (${esc(k)})</option>`).join('');
+
+    s.value=cur;
+
+  });
+
+}
+
+
+/* ============================ STATUS (จับคู่แผน <-> งานที่ทำจริง) ============================ */
+
+function computeStatus(){
+
+  const today=todayStr(), used=new Set(), byJob={};
+
+  planView=[];
+
+  planData.forEach(p=>{ (byJob[p.jobId]=byJob[p.jobId]||[]).push(p); });
+
+  Object.values(byJob).forEach(list=>{
+
+    list.sort((a,b)=>a.date.localeCompare(b.date));
+
+    list.forEach((p,i)=>{
+
+      const d=parseDate(p.date), from=fmt(addDays(d,-3)), monthEnd=fmt(new Date(d.getFullYear(),d.getMonth()+1,0));
+
+      const nextLimit=list[i+1]?fmt(addDays(parseDate(list[i+1].date),-1)):monthEnd, to=nextLimit<monthEnd?nextLimit:monthEnd;
+
+      const rec=p.jobId?pmData.find(r=>r.jobId===p.jobId&&!used.has(r.id)&&r.date>=from&&r.date<=to):null;
+
+      if(rec) used.add(rec.id);
+
+      planView.push({...p,rec,status:rec?rec.status:(p.date<today?'Overdue':'ค้าง')});
+
+    });
+
+  });
+
+  planView.sort((a,b)=>a.date.localeCompare(b.date));
+
+  extraRecs=pmData.filter(r=>!used.has(r.id));
+
+}
+
+function pmRows(){
+
+  const rows=pmData.map(r=>({id:r.id,hasRec:true,date:r.date,shift:r.shift,machine:r.machine,activity:r.activity,status:r.status,userId:r.userId,user:nameOf(r.userId,r.userName)}));
+
+  planView.filter(p=>!p.rec).forEach(p=>rows.push({id:'',hasRec:false,date:p.date,shift:'-',machine:p.machine,activity:p.jobName,status:p.status,userId:'',user:'-'}));
+
+  return rows;
+
+}
+
+function statusBadge(s){ const m={'เสร็จ':'green','รอตรวจ':'blue','ค้าง':'yellow','Overdue':'red'}; return `<span class="badge ${m[s]||'yellow'}">${esc(s)}</span>`; }
+
+function severityBadge(s){ const m={'ต่ำ':'green','กลาง':'yellow','สูง':'orange','วิกฤต':'red'}; return `<span class="badge ${m[s]||'yellow'}">${esc(s)}</span>`; }
+
+function caseBadge(s){ const m={'เปิดเคส':'red','กำลังแก้ไข':'orange','รอ Maintenance':'orange','ปิดเคส':'green'}; return `<span class="badge ${m[s]||'yellow'}">${esc(s)}</span>`; }
+
+function pillClass(p){ return p.rec?(p.rec.status==='เสร็จ'?'done':'wait'):(p.status==='Overdue'?'late':''); }
+
+function pillIcon(p){ return p.rec?(p.rec.status==='เสร็จ'?'✅':'🕓'):(p.status==='Overdue'?'⚠':'📌'); }
+
+
+/* ============================ HOME / PM LIST ============================ */
+
+function renderHome(){
+
+  const today=todayStr(), ym=today.slice(0,7);
+
+  $('homeTitle').textContent=`วันนี้ ${thDate(today)}`+(ME&&ME.shift?` — กะ ${ME.shift}`:'');
+
+  $('hm1').textContent=`ถึงกำหนด/ค้าง ${planView.filter(p=>!p.rec&&p.date<=today).length} รายการ`;
+
+  $('hm2').textContent=`เคสที่ยังไม่ปิด ${problemData.filter(r=>r.status!=='ปิดเคส').length} รายการ`;
+
+  $('hm3').textContent=`เดือนนี้มี ${planView.filter(p=>p.date.startsWith(ym)).length} งานตามแผน`;
+
+  $('hm4').textContent=`บันทึกแล้วเดือนนี้ ${pmData.filter(r=>r.date.startsWith(ym)).length} งาน`;
+
+  $('hm5').textContent=`เคสเดือนนี้ ${problemData.filter(r=>r.date.startsWith(ym)).length} เคส`;
+
+}
+
+function goFollowUp(){ resetProblem(); $('f2_status').value='__open'; renderProblem(); showPage('dash2'); }
+
+function renderPMList(){
+
+  const q=($('pmSearch').value||'').toLowerCase(), today=todayStr(), ym=today.slice(0,7);
+
+  const rows=planView.filter(p=>p.date.startsWith(ym)||(!p.rec&&p.date<today))
+
+    .filter(p=>!q||(p.jobName+p.machine+(p.rec?nameOf(p.rec.userId,p.rec.userName):'')).toLowerCase().includes(q));
+
+  $('pmListBody').innerHTML=rows.map(p=>`<tr>
+
+    <td>${esc(thDate(p.date))}</td><td>${esc(p.machine)}</td><td>${esc(p.jobName)}${p.note?`<div class="muted">📝 ${esc(p.note)}</div>`:''}</td>
+
+    <td>${p.rec?esc(nameOf(p.rec.userId,p.rec.userName)):'-'}</td><td>${statusBadge(p.status)}</td>
+
+    <td>${p.rec?`<button class="btn secondary small" onclick="openPMDetail('${esc(p.rec.id)}')">ดู</button>`
+
+      :(canWrite()?`<button class="btn small" onclick="openPMForm('${esc(p.jobId)}')">บันทึก</button>`:'')}</td></tr>`).join('')
+
+    ||'<tr><td colspan="6" class="empty">ยังไม่มีแผนงานของเดือนนี้ — Admin ไปที่ "แผนงาน PM" แล้วกด Make my plan</td></tr>';
+
+}
+
+
+/* ============================ FORMS ============================ */
+
+function pickPhoto(inputId,boxId){ const f=$(inputId).files[0]; if(!f) return; $(boxId).innerHTML=`<img class="thumb-fill" src="${URL.createObjectURL(f)}" alt="">`; }
+
+function resetPhoto(inputId,boxId,text){ $(inputId).value=''; $(boxId).textContent=text; }
+
+function compressImage(file,maxW=1280,quality=0.7){
+
+  return new Promise((resolve,reject)=>{
+
+    const url=URL.createObjectURL(file), img=new Image();
+
+    img.onload=()=>{ const s=Math.min(1,maxW/img.width), c=document.createElement('canvas');
+
+      c.width=Math.round(img.width*s); c.height=Math.round(img.height*s);
+
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height); URL.revokeObjectURL(url); resolve(c.toDataURL('image/jpeg',quality)); };
+
+    img.onerror=()=>{ URL.revokeObjectURL(url); reject(new Error('อ่านไฟล์รูปไม่สำเร็จ')); };
+
+    img.src=url;
+
+  });
+
+}
+
+async function fileToData(inputId){ const f=$(inputId).files[0]; return f?await compressImage(f):''; }
+
+function photoUrl(id){ if(!id) return ''; if(String(id).startsWith('data:')) return id; return `https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w1000`; }
+
+
+function fillJobSelect(){
+
+  $('pm_job').innerHTML='<option value="">— งานนอกแผน (พิมพ์เอง) —</option>'+jobMaster.filter(j=>j.active).map(j=>`<option value="${esc(j.id)}">${esc(j.jobName)} — ${esc(j.machine)}</option>`).join('');
+
+}
+
+function onPMJobChange(){
+
+  const j=jobMaster.find(x=>x.id===$('pm_job').value);
+
+  if(j){ $('pm_machine').value=j.machine; $('pm_activity').value=j.jobName; }
+
+  $('pm_hint').textContent=j&&j.detail?'📋 '+j.detail:'';
+
+}
+
+function openPMForm(jobId){
+
+  closeModal(); fillJobSelect();
+
+  ['pm_machine','pm_activity','pm_comment'].forEach(id=>$(id).value='');
+
+  $('pm_date').value=todayStr(); $('pm_flag').checked=false; $('pm_hint').textContent='';
+
+  $('pm_who').textContent=`ผู้บันทึก: ${ME.name} (${ME.username})${ME.shift?' | กะ '+ME.shift:''} — ระบบบันทึกให้อัตโนมัติ`;
+
+  resetPhoto('fileBefore','boxBefore','+ ถ่าย/อัพโหลดรูป ก่อนทำ'); resetPhoto('fileAfter','boxAfter','+ ถ่าย/อัพโหลดรูป หลังทำ');
+
+  if(jobId){ $('pm_job').value=jobId; onPMJobChange(); }
+
+  showPage('pmform');
+
+}
+
+async function savePM(btn){
+
+  if(saving) return;
+
+  const raw=$('pm_machine').value.trim(), activity=$('pm_activity').value.trim(), date=$('pm_date').value;
+
+  if(!raw||!activity||!date){ toast('กรุณากรอกเครื่องจักร กิจกรรม และวันที่'); return; }
+
+  const machine=resolveMachine(raw);
+
+  if(!machine){ toast(`ไม่พบเครื่องจักร "${raw}" ในรายการ${suggestText(raw)}`); return; }
+
+  saving=true; btn.disabled=true; btn.textContent='กำลังบันทึก...';
+
+  try{
+
+    const photoBefore=await fileToData('fileBefore'), photoAfter=await fileToData('fileAfter'), comment=$('pm_comment').value;
+
+    await api('addPM',{date,machine,activity,jobId:$('pm_job').value,comment,photoBefore,photoAfter});
+
+    if($('pm_flag').checked) await api('addAbnormal',{date,machine,alarm:`[พบระหว่างทำ PM: ${activity}] ${comment||'-'}`,severity:'กลาง',initialFix:'',photo:''});
+
+    toast('บันทึกสำเร็จ'); await loadAll(); showPage('pmlist');
+
+  }catch(e){ alert(e.message); }
+
+  saving=false; btn.disabled=false; btn.textContent='บันทึก';
+
+}
+
+function openAbnormalForm(){
+
+  $('ab_machine').value=''; $('ab_alarm').value=''; $('ab_fix').value='';
+
+  resetPhoto('fileAlarm','boxAlarm','+ ถ่าย/อัพโหลดรูป Alarm');
+
+  document.querySelector('input[name=sev][value="สูง"]').checked=true;
+
+  showPage('abnormal');
+
+}
+
+async function saveAbnormal(btn){
+
+  if(saving) return;
+
+  const raw=$('ab_machine').value.trim(), alarm=$('ab_alarm').value.trim();
+
+  if(!raw||!alarm){ toast('กรุณากรอกเครื่องจักรและ Alarm/อาการที่พบ'); return; }
+
+  const machine=resolveMachine(raw);
+
+  if(!machine){ toast(`ไม่พบเครื่องจักร "${raw}" ในรายการ${suggestText(raw)}`); return; }
+
+  saving=true; btn.disabled=true; btn.textContent='กำลังบันทึก...';
+
+  try{
+
+    await api('addAbnormal',{date:todayStr(),machine,alarm,severity:document.querySelector('input[name=sev]:checked').value,initialFix:$('ab_fix').value,photo:await fileToData('fileAlarm')});
+
+    toast('บันทึกเหตุการณ์สำเร็จ'); await loadAll(); showPage('dash2');
+
+  }catch(e){ alert(e.message); }
+
+  saving=false; btn.disabled=false; btn.textContent='บันทึก';
+
+}
+
+
+/* ============================ MODAL / DETAIL ============================ */
+
+function openModal(html){ $('modalBox').innerHTML=html+`<div style="text-align:right;margin-top:14px"><button class="btn secondary small" onclick="closeModal()">ปิด</button></div>`; $('modal').classList.add('show'); }
+
+function closeModal(){ $('modal').classList.remove('show'); }
+
+function photoBlock(label,id){
+
+  const u=photoUrl(id); if(!u) return `<div><label>${label}</label><div class="muted">ไม่มีรูป</div></div>`;
+
+  const link=String(id).startsWith('data:')?'':` href="https://drive.google.com/file/d/${encodeURIComponent(id)}/view" target="_blank" rel="noopener"`;
+
+  return `<div><label>${label}</label><a${link}><img class="photo" src="${esc(u)}" alt=""></a></div>`;
+
+}
+
+function openPMDetail(id){
+
+  const r=pmData.find(x=>x.id===id); if(!r) return;
+
+  openModal(`<h2>รายละเอียดงาน PM</h2>
+
+    <p><b>${esc(r.activity)}</b><br>เครื่องจักร: ${esc(r.machine)}<br>วันที่: ${esc(thDate(r.date))} | กะ ${esc(r.shift)} | ผู้ทำ: ${esc(nameOf(r.userId,r.userName))} (${esc(r.userId)})<br>สถานะ: ${statusBadge(r.status)}</p>
+
+    <div class="grid2">${photoBlock('รูปก่อนทำ',r.photoBeforeId)}${photoBlock('รูปหลังทำ',r.photoAfterId)}</div>
+
+    <p><label>Comment</label><br>${esc(r.comment||'-')}</p>
+
+    ${r.status==='รอตรวจ'&&can('supervisor','admin')?`<button class="btn" onclick="approvePM('${esc(r.id)}',this)">✔ อนุมัติ (เสร็จสมบูรณ์)</button>`:''}`);
+
+}
+
+async function approvePM(id,btn){ btn.disabled=true; try{ await api('approvePM',{id}); closeModal(); toast('อนุมัติแล้ว'); await loadAll(); }catch(e){ alert(e.message); btn.disabled=false; } }
+
+
+function openCaseDetail(id){
+
+  const r=problemData.find(x=>x.id===id); if(!r) return;
+
+  const ups=updates.filter(u=>u.caseId===id).sort((a,b)=>String(a.timestamp).localeCompare(String(b.timestamp)));
+
+  const closed=r.status==='ปิดเคส', canAdd=canWrite()&&(!closed||isPriv());
+
+  const opts=CASE_STATUS.filter(s=>s!=='ปิดเคส'||isPriv());
+
+  const tl=`<div class="tl-item first"><div class="tl-head">${esc(thDateTime(r.timestamp))} · ${esc(nameOf(r.reportedById,r.reportedBy))} · แจ้งเคส</div>วิธีแก้เบื้องต้น: ${esc(r.initialFix||'-')}</div>`
+
+    +ups.map(u=>`<div class="tl-item"><div class="tl-head">${esc(thDateTime(u.timestamp))} · ${esc(nameOf(u.userId,u.userName))} (${esc(ROLES[u.role]||u.role)}) → ${caseBadge(u.statusAfter)}</div>${esc(u.note)}</div>`).join('');
+
+  openModal(`<h2>เหตุการณ์ผิดปกติ</h2>
+
+    <p><b>${esc(r.alarm)}</b><br>เครื่องจักร: ${esc(r.machine)}<br>วันที่: ${esc(thDate(r.date))} | กะ ${esc(r.shift)}<br>ความรุนแรง: ${severityBadge(r.severity)} &nbsp; สถานะปัจจุบัน: ${caseBadge(r.status)}</p>
+
+    ${photoBlock('รูปถ่าย Alarm',r.photoId)}
+
+    <h3>ประวัติการแก้ไข / Follow-up</h3>${tl}
+
+    ${canAdd?`<hr><label>เพิ่มบันทึก Follow-up / วิธีแก้ปัญหา</label>
+
+      <textarea id="cs_note" rows="3" placeholder="ทำอะไรไปแล้ว ผลเป็นอย่างไร ต้องติดตามอะไรต่อ..."></textarea>
+
+      <label>สถานะเคสหลังบันทึก</label>
+
+      <select id="cs_status">${opts.map(s=>`<option ${s===r.status?'selected':''}>${s}</option>`).join('')}</select>
+
+      <button class="btn" onclick="saveCase('${esc(r.id)}',this)">บันทึก Follow-up</button>`
+
+      :`<div class="muted">${closed?'🔒 เคสนี้ปิดแล้ว (หัวหน้ากะ/Maintenance/Admin เปิดเคสใหม่ได้)':'ผู้ใช้สิทธิ์ดูอย่างเดียว'}</div>`}`);
+
+}
+
+async function saveCase(id,btn){
+
+  const note=$('cs_note').value.trim(); if(!note){ toast('กรุณากรอกบันทึกก่อน'); return; }
+
+  btn.disabled=true;
+
+  try{ await api('addCaseUpdate',{caseId:id,note,status:$('cs_status').value}); toast('บันทึก Follow-up แล้ว'); await loadAll(); openCaseDetail(id); }
+
+  catch(e){ alert(e.message); btn.disabled=false; }
+
+}
+
+function showDay(ds){
+
+  const plans=planView.filter(p=>p.date===ds), extras=extraRecs.filter(r=>r.date===ds);
+
+  let h=`<h2>งานวันที่ ${esc(thDate(ds))}</h2>`;
+
+  if(!plans.length&&!extras.length) h+='<p class="muted">ไม่มีงานในวันนี้</p>';
+
+  plans.forEach(p=>{
+
+    h+=`<div class="job-detail"><div class="jn">${pillIcon(p)} ${esc(p.jobName)}</div>
+
+      <div class="meta">${esc(p.machine)} | ${esc(p.location)}${p.rec?` | ผู้ทำ: ${esc(nameOf(p.rec.userId,p.rec.userName))}`:''}<br>สถานะ: ${statusBadge(p.status)}${p.note?`<br>📝 ${esc(p.note)}`:''}</div>
+
+      <div style="margin-top:6px">${p.rec?`<button class="btn secondary small" onclick="openPMDetail('${esc(p.rec.id)}')">ดูรายละเอียด</button>`
+
+        :(canWrite()?`<button class="btn small" onclick="openPMForm('${esc(p.jobId)}')">บันทึกงานนี้</button>`:'')}</div></div>`;
+
+  });
+
+  extras.forEach(r=>{
+
+    h+=`<div class="job-detail"><div class="jn">${r.status==='เสร็จ'?'✅':'🕓'} ${esc(r.activity)} <span class="muted">(นอกแผน)</span></div>
+
+      <div class="meta">${esc(r.machine)} | กะ ${esc(r.shift)} | ${esc(nameOf(r.userId,r.userName))}</div>
+
+      <div style="margin-top:6px"><button class="btn secondary small" onclick="openPMDetail('${esc(r.id)}')">ดูรายละเอียด</button></div></div>`;
+
+  });
+
+  openModal(h);
+
+}
+
+
+/* ============================ DASHBOARDS ============================ */
+
+function sortRows(rows,s){
+
+  return rows.sort((a,b)=>{ const x=a[s.key], y=b[s.key]; const c=(typeof x==='number'&&typeof y==='number')?x-y:String(x??'').localeCompare(String(y??''),'th'); return s.asc?c:-c; });
+
+}
+
+function sortBy(t,k){ const s=sortState[t]; s.asc=s.key===k?!s.asc:true; s.key=k; t==='pm'?renderPM():renderProblem(); }
+
+
+function renderPM(){
+
+  const f={shift:$('f1_shift').value,machine:$('f1_machine').value.trim(),user:$('f1_user').value,status:$('f1_status').value,from:$('f1_from').value,to:$('f1_to').value};
+
+  const all=pmRows();
+
+  const rows=sortRows(all.filter(r=>(!f.shift||r.shift===f.shift)&&(!f.machine||norm(r.machine).includes(norm(f.machine)))&&(!f.user||r.userId===f.user)&&(!f.status||r.status===f.status)&&(!f.from||r.date>=f.from)&&(!f.to||r.date<=f.to)),sortState.pm);
+
+  lastPMRows=rows;
+
+  $('pmTableBody').innerHTML=rows.map(r=>`<tr class="${r.hasRec?'clickable':''}" ${r.hasRec?`onclick="openPMDetail('${esc(r.id)}')"`:''}>
+
+    <td>${esc(r.date)}</td><td>${esc(r.shift)}</td><td>${esc(r.machine)}</td><td>${esc(r.activity)}</td><td>${statusBadge(r.status)}</td><td>${esc(r.user)}</td></tr>`).join('')
+
+    ||'<tr><td colspan="6" class="empty">ไม่พบข้อมูล</td></tr>';
+
+  $('pmCount').textContent=`แสดง ${rows.length} จาก ${all.length} รายการ`;
+
+  const cnt=s=>rows.filter(r=>r.status===s).length;
+
+  $('pmDone').textContent=cnt('เสร็จ'); $('pmWait').textContent=cnt('รอตรวจ'); $('pmPending').textContent=cnt('ค้าง'); $('pmOverdue').textContent=cnt('Overdue');
+
+  const per=SHIFTS.map(s=>({s,n:rows.filter(r=>r.shift===s&&(r.status==='เสร็จ'||r.status==='รอตรวจ')).length}));
+
+  const max=Math.max(1,...per.map(x=>x.n));
+
+  $('shiftBars').innerHTML=per.map(x=>`<div class="bar-row"><span style="width:60px">Shift ${x.s}</span><div class="bar-track"><div class="bar-fill" style="width:${x.n/max*100}%"></div></div><span style="width:60px;text-align:right">${x.n} งาน</span></div>`).join('');
+
+  const byU={};
+
+  rows.filter(r=>r.hasRec).forEach(r=>{ const o=byU[r.userId]=byU[r.userId]||{id:r.userId,name:r.user,done:0,wait:0}; if(r.status==='เสร็จ')o.done++; else if(r.status==='รอตรวจ')o.wait++; });
+
+  $('userPerfBody').innerHTML=Object.values(byU).sort((a,b)=>(b.done+b.wait)-(a.done+a.wait)).map(o=>{
+
+    const u=users.find(x=>x.username===o.id);
+
+    return `<tr><td>${esc(o.name)}<div class="muted">${esc(o.id)}</div></td><td>${esc(u?u.shift||'-':'-')}</td><td>${o.done}</td><td>${o.wait}</td><td><b>${o.done+o.wait}</b></td></tr>`;
+
+  }).join('')||'<tr><td colspan="5" class="empty">ไม่มีข้อมูล</td></tr>';
+
+}
+
+function resetPM(){ ['f1_shift','f1_machine','f1_user','f1_status','f1_from','f1_to'].forEach(id=>$(id).value=''); renderPM(); }
+
+
+function renderProblem(){
+
+  const f={period:$('f2_period').value,from:$('f2_from').value,to:$('f2_to').value,shift:$('f2_shift').value,machine:$('f2_machine').value.trim(),user:$('f2_user').value,sev:$('f2_severity').value,status:$('f2_status').value};
+
+  const today=todayStr(), weekAgo=fmt(addDays(new Date(),-6)), ym=today.slice(0,7);
+
+  const fuCount={}, fuLast={}; updates.forEach(u=>{ fuCount[u.caseId]=(fuCount[u.caseId]||0)+1; fuLast[u.caseId]=u.timestamp; });
+
+  const base=problemData.map(r=>({...r,reporter:nameOf(r.reportedById,r.reportedBy),fu:fuCount[r.id]||0}));
+
+  const rows=sortRows(base.filter(r=>(!f.shift||r.shift===f.shift)&&(!f.machine||norm(r.machine).includes(norm(f.machine)))&&(!f.user||r.reportedById===f.user)&&(!f.sev||r.severity===f.sev)
+
+    &&(!f.status||(f.status==='__open'?r.status!=='ปิดเคส':r.status===f.status))&&(!f.from||r.date>=f.from)&&(!f.to||r.date<=f.to)&&(f.period!=='week'||r.date>=weekAgo)&&(f.period!=='month'||r.date.startsWith(ym))),sortState.prob);
+
+  lastProbRows=rows;
+
+  $('probTableBody').innerHTML=rows.map(r=>`<tr class="clickable" onclick="openCaseDetail('${esc(r.id)}')">
+
+    <td>${esc(r.date)}</td><td>${esc(r.shift)}</td><td>${esc(r.machine)}</td><td>${esc(r.alarm)}</td><td>${severityBadge(r.severity)}</td><td>${caseBadge(r.status)}</td><td>${esc(r.reporter)}</td>
+
+    <td>${r.fu?`${r.fu} ครั้ง<div class="muted">ล่าสุด ${esc(String(fuLast[r.id]).slice(0,10))}</div>`:'-'}</td></tr>`).join('')
+
+    ||'<tr><td colspan="8" class="empty">ไม่พบข้อมูล</td></tr>';
+
+  $('probCount').textContent=`แสดง ${rows.length} จาก ${problemData.length} รายการ`;
+
+  $('probTotal').textContent=rows.length;
+
+  $('probCritical').textContent=rows.filter(r=>r.severity==='วิกฤต').length;
+
+  $('probOpen').textContent=rows.filter(r=>r.status!=='ปิดเคส').length;
+
+  $('probFU').textContent=rows.filter(r=>r.fu>0).length;
+
+  const byM={}; rows.forEach(r=>byM[r.machine]=(byM[r.machine]||0)+1);
+
+  const top=Object.entries(byM).sort((a,b)=>b[1]-a[1]).slice(0,5), mx=top.length?top[0][1]:1, colors=['#dc2626','#f59e0b','#eab308','#0f3d63','#6b7280'];
+
+  $('paretoBars').innerHTML=top.map(([m,n],i)=>`<div class="bar-row"><span style="width:150px">${esc(m)}</span><div class="bar-track"><div class="bar-fill" style="width:${n/mx*100}%;background:${colors[i]}"></div></div><span style="width:60px;text-align:right">${n} ครั้ง</span></div>`).join('')||'<div class="muted">ไม่มีข้อมูล</div>';
+
+}
+
+function resetProblem(){ ['f2_period','f2_from','f2_to','f2_shift','f2_machine','f2_user','f2_severity','f2_status'].forEach(id=>$(id).value=''); renderProblem(); }
+
+
+function exportCSV(name,headers,rows){
+
+  const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+
+  const csv='\ufeff'+[headers.map(q).join(',')].concat(rows.map(r=>r.map(q).join(','))).join('\r\n');
+
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})); a.download=`${name}_${todayStr()}.csv`; a.click();
+
+  setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+
+}
+
+function exportPM(){ exportCSV('PM',['วันที่','กะ','เครื่องจักร','กิจกรรม','สถานะ','User ID','ผู้ทำ'],lastPMRows.map(r=>[r.date,r.shift,r.machine,r.activity,r.status,r.userId,r.user])); }
+
+function exportProblem(){
+
+  exportCSV('Problems',['วันที่','กะ','เครื่องจักร','Alarm/อาการ','ความรุนแรง','สถานะ','ผู้แจ้ง','วิธีแก้เบื้องต้น','ประวัติ Follow-up'],
+
+    lastProbRows.map(r=>[r.date,r.shift,r.machine,r.alarm,r.severity,r.status,r.reporter,r.initialFix,
+
+      updates.filter(u=>u.caseId===r.id).sort((a,b)=>String(a.timestamp).localeCompare(String(b.timestamp))).map(u=>`[${String(u.timestamp).slice(0,16)} ${nameOf(u.userId,u.userName)}] ${u.note}`).join(' | ')]));
+
+}
+
+
+/* ============================ CALENDAR ============================ */
+
+function setViewMode(mode){
+
+  viewMode=mode;
+
+  if(mode==='week'){ const t=new Date(); if(t.getFullYear()===calDate.getFullYear()&&t.getMonth()===calDate.getMonth()) calDate=t; }
+
+  else calDate=new Date(calDate.getFullYear(),calDate.getMonth(),1);
+
+  $('btnMonth').classList.toggle('active',mode==='month'); $('btnWeek').classList.toggle('active',mode==='week');
+
+  renderCalendar(); renderPlanJobs();
+
+}
+
+function changeCalPeriod(dir){
+
+  calDate=viewMode==='month'?new Date(calDate.getFullYear(),calDate.getMonth()+dir,1):addDays(calDate,dir*7);
+
+  renderCalendar(); renderPlanJobs();
+
+}
+
+function toggleAdminMode(){
+
+  adminMode=!adminMode;
+
+  $('adminSection').style.display=adminMode?'block':'none';
+
+  $('btnAdminToggle').textContent=adminMode?'👤 กลับโหมดปกติ':'🔧 โหมดวางแผน (Admin)';
+
+  renderPlanJobs();
+
+}
+
+function renderCalendar(){
+
+  viewMode==='month'?renderMonthView($('calendarContainer')):renderWeekView($('calendarContainer'));
+
+  $('adminMonthLabel').textContent=`${TH_MONTHS[calDate.getMonth()]} ${calDate.getFullYear()+543}`;
+
+  $('planDirtyNote').style.display=dirtyMonths.size?'block':'none';
+
+}
+
+function renderMonthView(c){
+
+  const y=calDate.getFullYear(), m=calDate.getMonth(), days=new Date(y,m+1,0).getDate(), startDow=new Date(y,m,1).getDay(), today=todayStr();
+
+  $('calTitle').textContent=`${TH_MONTHS[m]} ${y+543}`;
+
+  let cells=DOW_SHORT.map(n=>`<div class="calendar-head">${n}</div>`).join('');
+
+  for(let i=0;i<startDow;i++) cells+='<div class="calendar-cell other-month"></div>';
+
+  for(let d=1;d<=days;d++){
+
+    const ds=fmt(new Date(y,m,d));
+
+    const pills=planView.filter(p=>p.date===ds).map(p=>`<span class="job-pill ${pillClass(p)}" title="${esc(p.jobName+' - '+p.machine)}">${pillIcon(p)} ${esc(p.jobName)}</span>`).join('')
+
+      +extraRecs.filter(r=>r.date===ds).map(r=>`<span class="job-pill ${r.status==='เสร็จ'?'done':'wait'}">${r.status==='เสร็จ'?'✅':'🕓'} ${esc(r.activity)}</span>`).join('');
+
+    cells+=`<div class="calendar-cell${ds===today?' today':''}" onclick="showDay('${ds}')"><div class="daynum">${d}</div>${pills}</div>`;
+
+  }
+
+  const trail=(7-((startDow+days)%7))%7;
+
+  for(let i=0;i<trail;i++) cells+='<div class="calendar-cell other-month"></div>';
+
+  c.innerHTML=`<div class="calendar-grid">${cells}</div>`;
+
+}
+
+function renderWeekView(c){
+
+  const start=addDays(calDate,-calDate.getDay()), end=addDays(start,6), today=todayStr();
+
+  let cols='';
+
+  for(let i=0;i<7;i++){
+
+    const d=addDays(start,i), ds=fmt(d), plans=planView.filter(p=>p.date===ds), extras=extraRecs.filter(r=>r.date===ds);
+
+    const ph=plans.map(p=>`<div class="job-detail" onclick="showDay('${ds}')" style="cursor:pointer"><div class="jn">${pillIcon(p)} ${esc(p.jobName)}</div><div class="meta">${esc(p.machine)} | ${esc(p.location)}${p.rec?`<br>ผู้ทำ: ${esc(nameOf(p.rec.userId,p.rec.userName))}`:''}${p.note?`<br>📝 ${esc(p.note)}`:''}</div></div>`).join('');
+
+    const eh=extras.map(r=>`<div class="job-detail"><div class="jn">${r.status==='เสร็จ'?'✅':'🕓'} ${esc(r.activity)}</div><div class="meta">${esc(r.machine)} | กะ ${esc(r.shift)} | ${esc(nameOf(r.userId,r.userName))}</div></div>`).join('');
+
+    cols+=`<div class="week-col${ds===today?' today':''}"><div class="daynum">${DOW_SHORT[i]} ${d.getDate()}/${d.getMonth()+1}</div>${ph}${eh}${(!plans.length&&!extras.length)?'<div class="meta muted">- ไม่มีงาน -</div>':''}</div>`;
+
+  }
+
+  $('calTitle').textContent=`สัปดาห์ ${start.getDate()} ${TH_MONTHS[start.getMonth()]} - ${end.getDate()} ${TH_MONTHS[end.getMonth()]} ${end.getFullYear()+543}`;
+
+  c.innerHTML=`<div class="week-grid">${cols}</div>`;
+
+}
+
+
+/* ============================ PLANNING (Make my plan) ============================ */
+
+function monthStartStr(){ return fmt(new Date(calDate.getFullYear(),calDate.getMonth(),1)); }
+
+function lastDone(jobId,beforeStr){
+
+  let best=''; pmData.forEach(r=>{ if(r.jobId===jobId&&r.date<beforeStr&&(r.status==='เสร็จ'||r.status==='รอตรวจ')&&r.date>best) best=r.date; }); return best;
+
+}
+
+function freqText(j){
+
+  if(j.freqType==='weekday') return 'ทุกวัน '+((j.freqWeekdays||[]).map(i=>DOW_SHORT[i]).join(', ')||'(ยังไม่เลือก)');
+
+  return `ทุก ${j.freqDays||'?'} วัน`;
+
+}
+
+const locOf=j=>{ const m=machines.find(x=>x.name===j.machine); return m?m.location:j.location; };
+
+function renderPlanJobs(){
+
+  if(!$('planJobsBody')) return;
+
+  const ms=monthStartStr();
+
+  $('planJobsBody').innerHTML=jobMaster.filter(j=>j.active).map(j=>`<tr><td>${esc(j.jobName)}</td><td>${esc(j.machine)}</td><td>${esc(locOf(j))}</td><td>${esc(freqText(j))}</td><td>${esc(j.startDate||'-')}</td><td class="muted">${esc(lastDone(j.id,ms)||'-')}</td></tr>`).join('')
+
+    ||'<tr><td colspan="6" class="empty">ยังไม่มีงาน PM ที่ใช้งาน — เพิ่มที่ จัดการระบบ → งาน PM</td></tr>';
+
+}
+
+function generatePlan(monthDate){
+
+  const ms=new Date(monthDate.getFullYear(),monthDate.getMonth(),1), me=new Date(monthDate.getFullYear(),monthDate.getMonth()+1,0), msStr=fmt(ms), now=new Date();
+
+  const allowCatchUp=ms<=new Date(now.getFullYear(),now.getMonth(),1), firstWork=firstWorkday(ms);
+
+  const items=[], warnings=[], seen=new Set(); let shifted=0;
+
+  const push=(job,date,note)=>{ const k=job.id+'|'+fmt(date); if(seen.has(k)) return; seen.add(k);
+
+    items.push({date:fmt(date),jobId:job.id,jobName:job.jobName,machine:job.machine,location:locOf(job),note:note||''}); };
+
+  const place=(job,nominal)=>{
+
+    let actual=shiftBack(nominal), note='';
+
+    if(actual<ms){ actual=firstWork; note='ตรงวันหยุดต้นเดือน → ใช้วันทำการแรกของเดือน'; shifted++; }
+
+    else if(fmt(actual)!==fmt(nominal)){ note=`เลื่อนจากวัน${DOW_FULL[nominal.getDay()]}ที่ ${nominal.getDate()}`; shifted++; }
+
+    push(job,actual,note);
+
+  };
+
+  const jobs=jobMaster.filter(j=>j.active);
+
+  if(!jobs.length) warnings.push('ยังไม่มีงาน PM ที่ใช้งานอยู่');
+
+  jobs.forEach(job=>{
+
+    const mc=machines.find(x=>x.name===job.machine);
+
+    if(mc && !mc.active){ warnings.push(`"${job.jobName}": เครื่องจักร ${job.machine} ปิดใช้งานอยู่ จึงข้ามงานนี้`); return; }
+
+    if(job.freqType==='weekday'){
+
+      const days=(job.freqWeekdays||[]).filter(d=>d>=1&&d<=5);
+
+      if(!days.length){ warnings.push(`"${job.jobName}": ยังไม่ได้เลือกวันในสัปดาห์ จึงข้ามงานนี้`); return; }
+
+      for(let d=new Date(ms);d<=me;d=addDays(d,1)) if(days.includes(d.getDay())) place(job,d);
+
+      return;
+
+    }
+
+    const n=Number(job.freqDays);
+
+    if(!n||n<1){ warnings.push(`"${job.jobName}": ความถี่ (จำนวนวัน) ไม่ถูกต้อง จึงข้ามงานนี้`); return; }
+
+    const base=[lastDone(job.id,msStr),job.startDate].filter(Boolean).sort().pop();
+
+    let next;
+
+    if(!base){
+
+      push(job,firstWork,'ไม่มีประวัติ: เริ่มรอบใหม่');
+
+      warnings.push(`"${job.jobName}": ไม่มีประวัติและไม่ได้ระบุวันเริ่มต้น — เริ่มที่วันทำการแรกของเดือน (${thDate(fmt(firstWork))})`);
+
+      next=addDays(firstWork,n);
+
+    }else{
+
+      next=addDays(parseDate(base),n);
+
+      if(next<ms){
+
+        if(allowCatchUp){
+
+          push(job,firstWork,`เลยกำหนดจากรอบก่อน (ครบ ${thDate(fmt(next))})`);
+
+          warnings.push(`"${job.jobName}": เลยกำหนดตั้งแต่ ${thDate(fmt(next))} — จัดเป็นวันทำการแรกของเดือน`);
+
+          next=addDays(firstWork,n);
+
+        }else{ while(next<ms) next=addDays(next,n); }
+
+      }
+
+    }
+
+    let guard=0; while(next<=me&&guard++<400){ place(job,next); next=addDays(next,n); }
+
+  });
+
+  items.sort((a,b)=>a.date.localeCompare(b.date)||a.jobName.localeCompare(b.jobName,'th'));
+
+  return {items,warnings,shifted};
+
+}
+
+function makeMyPlan(){
+
+  const key=monthStartStr().slice(0,7), label=`${TH_MONTHS[calDate.getMonth()]} ${calDate.getFullYear()+543}`;
+
+  const existing=planData.filter(p=>p.date.startsWith(key)).length;
+
+  if(existing&&!confirm(`เดือน${label} มีแผนอยู่แล้ว ${existing} งาน\nต้องการสร้างใหม่และแทนที่แผนเดิมของเดือนนี้หรือไม่?`)) return;
+
+  const {items,warnings,shifted}=generatePlan(new Date(calDate.getFullYear(),calDate.getMonth(),1));
+
+  planData=[...planData.filter(p=>!p.date.startsWith(key)),...items];
+
+  dirtyMonths.add(key);
+
+  computeStatus(); renderCalendar(); renderHome(); renderPMList(); renderPM();
+
+  $('planMsg').innerHTML=`✅ สร้างแผนเดือน${esc(label)} จำนวน <b>${items.length}</b> งาน (เลื่อนจากเสาร์-อาทิตย์/วันหยุด ${shifted} งาน) — <b>ตรวจบนปฏิทินแล้วกด "บันทึกแผนลงระบบ"</b>`
+
+    +(warnings.length?`<ul>${warnings.map(w=>`<li>${esc(w)}</li>`).join('')}</ul>`:'');
+
+}
+
+async function savePlanToServer(btn){
+
+  if(!dirtyMonths.size){ toast('ไม่มีแผนร่างที่ต้องบันทึก'); return; }
+
+  btn.disabled=true;
+
+  try{
+
+    for(const month of [...dirtyMonths]){
+
+      await api('savePlanMonth',{month,rows:planData.filter(p=>p.date.startsWith(month)).map(p=>({date:p.date,jobId:p.jobId,jobName:p.jobName,machine:p.machine,location:p.location,note:p.note||''}))});
+
+      dirtyMonths.delete(month);
+
+    }
+
+    renderCalendar(); toast('บันทึกแผนเรียบร้อย');
+
+  }catch(e){ alert(e.message); }
+
+  btn.disabled=false;
+
+}
+
+
+/* ============================ ADMIN: เครื่องจักร / งาน PM / ผู้ใช้ ============================ */
+
+function setAdminTab(t){
+
+  adminTab=t;
+
+  ['machines','jobs','users'].forEach(k=>{ $('tab_'+k).style.display=k===t?'block':'none'; $('tabBtn_'+k).classList.toggle('active',k===t); });
+
+}
+
+function renderAdmin(){
+
+  $('au_r').innerHTML='<option value="">ทั้งหมด</option>'+Object.entries(ROLES).map(([k,v])=>`<option value="${k}">${v}</option>`).join('');
+
+  const sys=[...new Set(machines.map(m=>m.system).filter(Boolean))].sort();
+
+  const cur=$('am_sys').value; $('am_sys').innerHTML='<option value="">ทั้งหมด</option>'+sys.map(s=>`<option>${esc(s)}</option>`).join(''); $('am_sys').value=cur;
+
+  $('systemList').innerHTML=sys.map(s=>`<option value="${esc(s)}">`).join('');
+
+  renderAdminMachines(); renderAdminJobs(); renderAdminUsers(); setAdminTab(adminTab);
+
+}
+
+const onOff=a=>a?'<span class="badge green">ใช้งาน</span>':'<span class="badge gray">ปิดใช้งาน</span>';
+
+
+/* ---- เครื่องจักร ---- */
+
+function renderAdminMachines(){
+
+  const q=($('am_q').value||'').toLowerCase(), sys=$('am_sys').value, st=$('am_st').value;
+
+  const rows=machines.filter(m=>(!q||(m.name+m.location).toLowerCase().includes(q))&&(!sys||m.system===sys)&&(!st||(st==='on')===m.active));
+
+  $('amBody').innerHTML=rows.map(m=>`<tr><td><b>${esc(m.name)}</b></td><td>${esc(m.system||'-')}</td><td>${esc(m.location||'-')}</td>
+
+    <td>${jobMaster.filter(j=>j.machine===m.name).length}</td><td>${pmData.filter(r=>r.machine===m.name).length}</td><td>${problemData.filter(r=>r.machine===m.name).length}</td><td>${onOff(m.active)}</td>
+
+    <td><div class="btn-row"><button class="btn secondary small" onclick="openMachineForm('${esc(m.id)}')">แก้ไข</button>
+
+    <button class="btn secondary small" onclick="toggleMachine('${esc(m.id)}')">${m.active?'ปิดใช้งาน':'เปิดใช้งาน'}</button>
+
+    <button class="btn danger small" onclick="deleteMachine('${esc(m.id)}')">ลบ</button></div></td></tr>`).join('')
+
+    ||'<tr><td colspan="8" class="empty">ไม่พบเครื่องจักร</td></tr>';
+
+  $('amCount').textContent=`แสดง ${rows.length} จาก ${machines.length} เครื่อง`;
+
+}
+
+function openMachineForm(id){
+
+  const m=id?machines.find(x=>x.id===id):{name:'',system:'',location:'',active:true};
+
+  openModal(`<h2>${id?'แก้ไข':'เพิ่ม'}เครื่องจักร</h2>
+
+    <label>ชื่อเครื่องจักร ${id?'<span class="muted">(แก้ไม่ได้ เพราะผูกกับประวัติ — ถ้าเลิกใช้ให้ปิดใช้งาน)</span>':''}</label>
+
+    <input id="mf_name" value="${esc(m.name)}" ${id?'readonly':''}>
+
+    <label>ระบบ</label><input id="mf_sys" list="systemList" value="${esc(m.system)}" placeholder="เช่น Air System">
+
+    <label>ตำแหน่ง/Location</label><input id="mf_loc" value="${esc(m.location)}">
+
+    <label class="inline"><input type="checkbox" id="mf_active" ${m.active?'checked':''}> เปิดใช้งาน</label><br><br>
+
+    <button class="btn" onclick="saveMachine('${esc(id||'')}',this)">บันทึก</button>`);
+
+}
+
+async function saveMachine(id,btn){
+
+  const name=$('mf_name').value.trim(); if(!name){ toast('กรุณาระบุชื่อเครื่องจักร'); return; }
+
+  if(!id && machines.some(m=>norm(m.name)===norm(name))){ toast('มีเครื่องจักรชื่อนี้อยู่แล้ว'); return; }
+
+  btn.disabled=true;
+
+  try{
+
+    await api('upsert',{sheet:'Machines',row:{id:id||'M'+Date.now(),name,system:$('mf_sys').value.trim(),location:$('mf_loc').value.trim(),active:$('mf_active').checked?'Y':'N'}});
+
+    closeModal(); toast('บันทึกเครื่องจักรแล้ว'); await loadAll();
+
+  }catch(e){ alert(e.message); btn.disabled=false; }
+
+}
+
+async function toggleMachine(id){
+
+  const m=machines.find(x=>x.id===id); if(!m) return;
+
+  try{ await api('upsert',{sheet:'Machines',row:{id:m.id,name:m.name,system:m.system,location:m.location,active:m.active?'N':'Y'}}); await loadAll(); }catch(e){ alert(e.message); }
+
+}
+
+async function deleteMachine(id){
+
+  const m=machines.find(x=>x.id===id); if(!m) return;
+
+  const used=jobMaster.some(j=>j.machine===m.name)||pmData.some(r=>r.machine===m.name)||problemData.some(r=>r.machine===m.name);
+
+  if(used){ alert('เครื่องจักรนี้มีงาน PM หรือประวัติอยู่ ลบไม่ได้\nให้ใช้ "ปิดใช้งาน" แทน'); return; }
+
+  if(!confirm(`ลบเครื่องจักร "${m.name}" ?`)) return;
+
+  try{ await api('remove',{sheet:'Machines',id}); await loadAll(); }catch(e){ alert(e.message); }
+
+}
+
+
+/* ---- งาน PM ---- */
+
+function renderAdminJobs(){
+
+  const q=($('aj_q').value||'').toLowerCase(), mq=$('aj_m').value.trim(), ft=$('aj_f').value, st=$('aj_st').value;
+
+  const rows=jobMaster.filter(j=>(!q||(j.jobName+j.detail).toLowerCase().includes(q))&&(!mq||norm(j.machine).includes(norm(mq)))&&(!ft||j.freqType===ft)&&(!st||(st==='on')===j.active));
+
+  $('ajBody').innerHTML=rows.map(j=>`<tr><td><b>${esc(j.jobName)}</b>${j.detail?`<div class="muted">${esc(j.detail)}</div>`:''}</td><td>${esc(j.machine)}</td><td>${esc(locOf(j)||'-')}</td>
+
+    <td>${esc(freqText(j))}</td><td>${esc(lastDone(j.id,'9999-12-31')||'-')}</td><td>${esc(j.startDate||'-')}</td><td>${onOff(j.active)}</td>
+
+    <td><div class="btn-row"><button class="btn secondary small" onclick="openJobForm('${esc(j.id)}')">แก้ไข</button>
+
+    <button class="btn secondary small" onclick="toggleJob('${esc(j.id)}')">${j.active?'ปิดใช้งาน':'เปิดใช้งาน'}</button>
+
+    <button class="btn danger small" onclick="deleteJob('${esc(j.id)}')">ลบ</button></div></td></tr>`).join('')
+
+    ||'<tr><td colspan="8" class="empty">ไม่พบงาน PM</td></tr>';
+
+  $('ajCount').textContent=`แสดง ${rows.length} จาก ${jobMaster.length} งาน`;
+
+}
+
+function jobRow(j,over){
+
+  const o={...j,...over};
+
+  return {id:o.id,jobName:o.jobName,machine:o.machine,location:locOf(o),freqType:o.freqType,freqDays:o.freqType==='days'?(o.freqDays||''):'',
+
+    freqWeekdays:(o.freqWeekdays||[]).join(','),startDate:o.startDate||'',active:o.active?'Y':'N',detail:o.detail||''};
+
+}
+
+function openJobForm(id){
+
+  const j=id?jobMaster.find(x=>x.id===id):{jobName:'',machine:'',freqType:'days',freqDays:7,freqWeekdays:[],startDate:'',active:true,detail:''};
+
+  openModal(`<h2>${id?'แก้ไข':'เพิ่ม'}งาน PM</h2>
+
+    <label>ชื่องาน</label><input id="jf_name" value="${esc(j.jobName)}" placeholder="เช่น ทำความสะอาด Strainer">
+
+    <label>เครื่องจักร (พิมพ์เพื่อค้นหา)</label><input id="jf_machine" class="mpick" autocomplete="off" value="${esc(j.machine)}" oninput="$('jf_loc').textContent=''" onchange="jfLoc()">
+
+    <div class="muted" style="margin:-6px 0 12px">ตำแหน่ง: <span id="jf_loc">${esc(id?locOf(j):'')}</span></div>
+
+    <label>ความถี่</label>
+
+    <select id="jf_type" onchange="jfType()"><option value="days" ${j.freqType==='days'?'selected':''}>ทุก N วัน</option><option value="weekday" ${j.freqType==='weekday'?'selected':''}>วันในสัปดาห์ที่กำหนด (จ-ศ)</option></select>
+
+    <div id="jf_days" style="display:${j.freqType==='days'?'block':'none'}"><label>ทุกกี่วัน</label><input id="jf_n" type="number" min="1" value="${esc(j.freqDays||'')}"></div>
+
+    <div id="jf_wd" style="display:${j.freqType==='weekday'?'block':'none'};margin-bottom:12px">${[[1,'จันทร์'],[2,'อังคาร'],[3,'พุธ'],[4,'พฤหัสบดี'],[5,'ศุกร์']].map(([i,l])=>`<label class="weekday-check"><input type="checkbox" class="jf_d" value="${i}" ${(j.freqWeekdays||[]).includes(i)?'checked':''}>${l}</label>`).join('')}</div>
+
+    <label>วันที่ทำล่าสุด/วันเริ่มต้น (ใช้เมื่อยังไม่มีประวัติในระบบ)</label><input id="jf_start" type="date" value="${esc(j.startDate||'')}">
+
+    <label>รายละเอียด/ขั้นตอนงาน (แสดงให้พนักงานเห็นตอนบันทึก PM)</label><textarea id="jf_detail" rows="3">${esc(j.detail||'')}</textarea>
+
+    <label class="inline"><input type="checkbox" id="jf_active" ${j.active?'checked':''}> เปิดใช้งาน</label><br><br>
+
+    <button class="btn" onclick="saveJob('${esc(id||'')}',this)">บันทึก</button>`);
+
+}
+
+function jfType(){ const w=$('jf_type').value==='weekday'; $('jf_days').style.display=w?'none':'block'; $('jf_wd').style.display=w?'block':'none'; }
+
+function jfLoc(){ const n=resolveMachine($('jf_machine').value); const m=machines.find(x=>x.name===n); $('jf_loc').textContent=m?m.location:''; }
+
+async function saveJob(id,btn){
+
+  const old=id?jobMaster.find(x=>x.id===id):null, name=$('jf_name').value.trim(), raw=$('jf_machine').value.trim();
+
+  if(!name){ toast('กรุณาระบุชื่องาน'); return; }
+
+  const machine=resolveMachine(raw, old&&old.machine);
+
+  if(!machine){ toast(`ไม่พบเครื่องจักร "${raw}" ในรายการ${suggestText(raw)}`); return; }
+
+  const type=$('jf_type').value, n=Number($('jf_n').value), wd=[...document.querySelectorAll('.jf_d:checked')].map(x=>Number(x.value));
+
+  if(type==='days'&&(!n||n<1)){ toast('กรุณาระบุจำนวนวันให้ถูกต้อง'); return; }
+
+  if(type==='weekday'&&!wd.length){ toast('กรุณาเลือกวันในสัปดาห์อย่างน้อย 1 วัน'); return; }
+
+  btn.disabled=true;
+
+  try{
+
+    await api('upsert',{sheet:'PM_Jobs',row:jobRow({id:id||'J'+Date.now()},{jobName:name,machine,freqType:type,freqDays:n,freqWeekdays:wd,startDate:$('jf_start').value,active:$('jf_active').checked,detail:$('jf_detail').value.trim()})});
+
+    closeModal(); toast('บันทึกงาน PM แล้ว'); await loadAll();
+
+  }catch(e){ alert(e.message); btn.disabled=false; }
+
+}
+
+async function toggleJob(id){
+
+  const j=jobMaster.find(x=>x.id===id); if(!j) return;
+
+  try{ await api('upsert',{sheet:'PM_Jobs',row:jobRow(j,{active:!j.active})}); await loadAll(); }catch(e){ alert(e.message); }
+
+}
+
+async function deleteJob(id){
+
+  const j=jobMaster.find(x=>x.id===id); if(!j) return;
+
+  if(pmData.some(r=>r.jobId===id)){ alert('งานนี้มีประวัติการบันทึก PM แล้ว ลบไม่ได้\nให้ใช้ "ปิดใช้งาน" แทน'); return; }
+
+  if(!confirm(`ลบงาน "${j.jobName}" ?`)) return;
+
+  try{ await api('remove',{sheet:'PM_Jobs',id}); await loadAll(); }catch(e){ alert(e.message); }
+
+}
+
+
+/* ---- ผู้ใช้งาน ---- */
+
+function renderAdminUsers(){
+
+  const q=($('au_q').value||'').toLowerCase(), r=$('au_r').value, s=$('au_s').value, st=$('au_st').value;
+
+  const rows=users.filter(u=>(!q||(u.username+u.name).toLowerCase().includes(q))&&(!r||u.role===r)&&(!s||u.shift===s)&&(!st||(st==='on')===u.active));
+
+  $('auBody').innerHTML=rows.map(u=>`<tr><td><b>${esc(u.username)}</b></td><td>${esc(u.name)}</td><td><span class="badge blue">${esc(ROLES[u.role]||u.role)}</span></td><td>${esc(u.shift||'-')}</td>
+
+    <td>${pmData.filter(x=>x.userId===u.username).length}</td><td>${problemData.filter(x=>x.reportedById===u.username).length}</td><td>${onOff(u.active)}</td>
+
+    <td><button class="btn secondary small" onclick="openUserForm('${esc(u.username)}')">แก้ไข / รีเซ็ตรหัส</button></td></tr>`).join('')
+
+    ||'<tr><td colspan="8" class="empty">ไม่พบผู้ใช้</td></tr>';
+
+  $('auCount').textContent=`แสดง ${rows.length} จาก ${users.length} บัญชี`;
+
+}
+
+function openUserForm(username){
+
+  const u=username?users.find(x=>x.username===username):{username:'',name:'',role:'operator',shift:'',active:true};
+
+  openModal(`<h2>${username?'แก้ไข':'เพิ่ม'}ผู้ใช้งาน</h2>
+
+    <div class="grid2"><div><label>User ID (Username)</label><input id="uf_user" value="${esc(u.username)}" ${username?'readonly':''} autocomplete="off" placeholder="a-z 0-9 . _ -"></div>
+
+    <div><label>ชื่อที่แสดงในระบบ</label><input id="uf_name" value="${esc(u.name)}"></div></div>
+
+    <div class="grid2"><div><label>Role</label><select id="uf_role">${Object.entries(ROLES).map(([k,v])=>`<option value="${k}" ${k===u.role?'selected':''}>${v}</option>`).join('')}</select></div>
+
+    <div><label>กะ (จำเป็นสำหรับพนักงานกะ)</label><select id="uf_shift"><option value="">-</option>${SHIFTS.map(s=>`<option ${s===u.shift?'selected':''}>${s}</option>`).join('')}</select></div></div>
+
+    <label>${username?'รหัสผ่านใหม่ (เว้นว่าง = ไม่เปลี่ยน)':'รหัสผ่าน'}</label>
+
+    <input id="uf_pw" type="password" autocomplete="new-password" placeholder="อย่างน้อย 6 ตัวอักษร">
+
+    <label class="inline"><input type="checkbox" id="uf_active" ${u.active?'checked':''}> เปิดใช้งาน (ปิดแล้วจะ Login ไม่ได้ แต่ประวัติงานยังอยู่ใน Dashboard)</label><br><br>
+
+    <button class="btn" onclick="saveUser(${username?'true':'false'},this)">บันทึก</button>`);
+
+}
+
+async function saveUser(isEdit,btn){
+
+  const username=$('uf_user').value.trim().toLowerCase(), pw=$('uf_pw').value;
+
+  if(!/^[a-z0-9._-]{3,30}$/.test(username)){ toast('User ID ต้องเป็น a-z 0-9 . _ - ยาว 3-30 ตัว'); return; }
+
+  if(!isEdit && users.some(x=>x.username===username)){ toast('User ID นี้มีอยู่แล้ว'); return; }
+
+  if(!$('uf_name').value.trim()){ toast('กรุณาระบุชื่อ'); return; }
+
+  if($('uf_role').value==='operator' && !$('uf_shift').value){ toast('พนักงานกะต้องระบุกะ'); return; }
+
+  if(!isEdit && !pw){ toast('กรุณาตั้งรหัสผ่าน'); return; }
+
+  if(pw && pw.length<6){ toast('รหัสผ่านต้องยาวอย่างน้อย 6 ตัวอักษร'); return; }
+
+  btn.disabled=true;
+
+  try{
+
+    await api('saveUser',{username,name:$('uf_name').value.trim(),role:$('uf_role').value,shift:$('uf_shift').value,password:pw,active:$('uf_active').checked});
+
+    closeModal(); toast('บันทึกผู้ใช้แล้ว'); await loadAll();
+
+  }catch(e){ alert(e.message); btn.disabled=false; }
+
+}
+
+function openChangePw(){
+
+  openModal(`<h2>เปลี่ยนรหัสผ่าน</h2>
+
+    <label>รหัสผ่านเดิม</label><input id="cp_old" type="password" autocomplete="current-password">
+
+    <label>รหัสผ่านใหม่ (อย่างน้อย 6 ตัวอักษร)</label><input id="cp_new" type="password" autocomplete="new-password">
+
+    <label>ยืนยันรหัสผ่านใหม่</label><input id="cp_new2" type="password" autocomplete="new-password">
+
+    <button class="btn" onclick="saveChangePw(this)">บันทึก</button>`);
+
+}
+
+async function saveChangePw(btn){
+
+  if($('cp_new').value!==$('cp_new2').value){ toast('รหัสผ่านใหม่ไม่ตรงกัน'); return; }
+
+  btn.disabled=true;
+
+  try{ await api('changePassword',{oldPassword:$('cp_old').value,newPassword:$('cp_new').value}); closeModal(); toast('เปลี่ยนรหัสผ่านแล้ว'); }
+
+  catch(e){ alert(e.message); btn.disabled=false; }
+
+}
+
+
+/* ============================ INIT ============================ */
+
+$('mockBanner').style.display=USE_MOCK?'block':'none';
+
+$('mockHint').style.display=USE_MOCK?'block':'none';
+
+resetPhoto('fileAlarm','boxAlarm','+ ถ่าย/อัพโหลดรูป Alarm');
+
+resetPhoto('fileBefore','boxBefore','+ ถ่าย/อัพโหลดรูป ก่อนทำ');
+
+resetPhoto('fileAfter','boxAfter','+ ถ่าย/อัพโหลดรูป หลังทำ');
+
+if(TOKEN&&ME) startApp(); else logout();
+
+</script>
+
+</body>
+
+</html>
