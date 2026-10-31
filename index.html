@@ -99,6 +99,9 @@
   .tl-item{border-left:3px solid #0f3d63;padding:2px 0 10px 12px;margin-left:6px;font-size:13px}
   .tl-item.first{border-color:#94a3b8}
   .tl-head{font-size:12px;color:#6b7280;margin-bottom:2px}
+  /* delete confirm */
+  .warnbox{background:#fef2f2;border:1px solid #fecaca;color:#991b1b;border-radius:8px;padding:10px 12px;font-size:13px;margin-bottom:12px}
+  .del-sum{background:#f8fafc;border:1px solid #e5e7eb;border-radius:8px;padding:10px 12px;font-size:13px;margin-bottom:12px;line-height:1.7}
   /* machine picker */
   #mpDrop{position:fixed;display:none;z-index:300;background:#fff;border:1px solid #cbd5e1;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.18);max-height:260px;overflow:auto}
   .mp-item{padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid #f1f5f9}
@@ -353,7 +356,11 @@
 <div id="dash2" class="page">
   <div class="card">
     <div class="flex-between"><h2>Dashboard สรุปปัญหา</h2>
-      <div class="btn-row"><button class="btn secondary small" onclick="exportProblem()">⬇ Export CSV</button><button class="btn secondary small" onclick="window.print()">🖨 พิมพ์ / PDF</button></div></div>
+      <div class="btn-row">
+        <button class="btn secondary small" onclick="exportProblem()">⬇ Export CSV</button>
+        <button class="btn secondary small" onclick="openProbPdfOptions()">📄 Export PDF</button>
+        <button class="btn secondary small" onclick="window.print()">🖨 พิมพ์ / PDF</button>
+      </div></div>
     <div class="grid4">
       <div class="card stat"><div class="num" id="probTotal">-</div><div class="label">เคสทั้งหมด (ตาม Filter)</div></div>
       <div class="card stat"><div class="num" id="probCritical">-</div><div class="label">เคสวิกฤต</div></div>
@@ -618,7 +625,8 @@ function seedMock(){
       up(c1,ago(1),'15:00','maintenance','ช่าง Maintenance','maintenance','เปลี่ยน Pressure Switch เรียบร้อย ทดสอบแล้วปกติ','ปิดเคส'),
       up(c2,ago(2),'10:30','somying','สมหญิง','operator','ปรับ Set point เพิ่ม 1°C ติดตามต่อกะถัดไป','กำลังแก้ไข'),
       up(c3,ago(4),'08:00','somsak','สมศักดิ์','operator','เรียก Maintenance มาตรวจ Flame Sensor แล้ว','รอ Maintenance')],
-    PM_Plan:[]
+    PM_Plan:[],
+    Delete_Log:[]
   };
 }
 function saveMock(){ try{ localStorage.setItem(MOCK_KEY, JSON.stringify(MOCKDB)); }catch(e){ toast('พื้นที่เก็บข้อมูลทดสอบเต็ม (รูปอาจใหญ่เกินไป)'); } }
@@ -657,6 +665,16 @@ async function mockApi(action,p){
       if(p.status==='ปิดเคส' && !isPriv()) throw new Error('การปิดเคสทำได้เฉพาะหัวหน้ากะ/Maintenance/Admin');
       MOCKDB.Case_Updates.push({id:uid(),caseId:p.caseId,timestamp:ts,userId:ME.username,userName:ME.name,role:ME.role,note,statusAfter:p.status});
       c.status=p.status; c.lastUpdate=ts; saveMock(); return 'updated';
+    }
+    case 'deleteCase': {
+      need('admin');
+      const reason=String(p.reason||'').trim(); if(reason.length<3) throw new Error('กรุณาระบุเหตุผลในการลบ');
+      const c=MOCKDB.Abnormal_Events.find(x=>x.id===p.id); if(!c) throw new Error('ไม่พบเคส (อาจถูกลบไปแล้ว)');
+      MOCKDB.Delete_Log=MOCKDB.Delete_Log||[];
+      MOCKDB.Delete_Log.push({timestamp:ts,userId:ME.username,userName:ME.name,caseId:c.id,date:c.date,machine:c.machine,alarm:c.alarm,severity:c.severity,status:c.status,reportedBy:c.reportedBy,reason});
+      MOCKDB.Abnormal_Events=MOCKDB.Abnormal_Events.filter(x=>x.id!==p.id);
+      MOCKDB.Case_Updates=MOCKDB.Case_Updates.filter(x=>x.caseId!==p.id);
+      saveMock(); return 'deleted';
     }
     case 'approvePM': {
       need('supervisor','admin'); const r=MOCKDB.PM_Records.find(x=>x.id===p.id); if(!r) throw new Error('ไม่พบรายการ');
@@ -925,7 +943,8 @@ function openCaseDetail(id){
       <label>สถานะเคสหลังบันทึก</label>
       <select id="cs_status">${opts.map(s=>`<option ${s===r.status?'selected':''}>${s}</option>`).join('')}</select>
       <button class="btn" onclick="saveCase('${esc(r.id)}',this)">บันทึก Follow-up</button>`
-      :`<div class="muted">${closed?'🔒 เคสนี้ปิดแล้ว (หัวหน้ากะ/Maintenance/Admin เพิ่มบันทึกได้)':'ผู้ใช้สิทธิ์ดูอย่างเดียว'}</div>`}`);
+      :`<div class="muted">${closed?'🔒 เคสนี้ปิดแล้ว (หัวหน้ากะ/Maintenance/Admin เพิ่มบันทึกได้)':'ผู้ใช้สิทธิ์ดูอย่างเดียว'}</div>`}
+    ${can('admin')?`<hr><div class="flex-between"><span class="muted">บันทึกผิดพลาด? (เฉพาะ Admin)</span><button class="btn danger small" onclick="openDeleteCase('${esc(r.id)}')">🗑 ลบข้อมูล</button></div>`:''}`);
 }
 async function saveCase(id,btn){
   const note=$('cs_note').value.trim(); if(!note){ toast('กรุณากรอกบันทึกก่อน'); return; }
@@ -933,6 +952,44 @@ async function saveCase(id,btn){
   try{ await api('addCaseUpdate',{caseId:id,note,status:$('cs_status').value}); toast('บันทึก Follow-up แล้ว'); await loadAll(); openCaseDetail(id); }
   catch(e){ alert(e.message); btn.disabled=false; }
 }
+
+/* ---- ลบเคสปัญหา (Admin เท่านั้น) พร้อมหน้าต่างยืนยัน ---- */
+function openDeleteCase(id){
+  if(!can('admin')) return;
+  const r=problemData.find(x=>x.id===id); if(!r){ toast('ไม่พบเคส'); return; }
+  const n=updates.filter(u=>u.caseId===id).length;
+  openModal(`<h2 style="color:#b91c1c">🗑 ยืนยันการลบข้อมูลเคสปัญหา</h2>
+    <div class="warnbox"><b>คำเตือน:</b> การลบเป็นการลบถาวร ไม่สามารถกู้คืนจากในระบบได้ ใช้เฉพาะกรณีบันทึกผิดพลาดเท่านั้น หากเคสนี้เกิดขึ้นจริงให้ใช้ "ปิดเคส" แทน</div>
+    <div class="del-sum">
+      <b>${esc(r.alarm)}</b><br>
+      เครื่องจักร: ${esc(r.machine)} | วันที่: ${esc(thDate(r.date))} | กะ ${esc(r.shift)}<br>
+      ผู้แจ้ง: ${esc(nameOf(r.reportedById,r.reportedBy))} | ความรุนแรง: ${severityBadge(r.severity)} | สถานะ: ${caseBadge(r.status)}<br>
+      สิ่งที่จะถูกลบไปด้วย: <b>${n}</b> รายการ Follow-up${r.photoId?' และรูปถ่าย Alarm':''}
+    </div>
+    <label>เหตุผลที่ลบ (จำเป็น ระบบจะเก็บไว้ในประวัติการลบ)</label>
+    <input id="del_reason" maxlength="200" placeholder="เช่น บันทึกผิดเครื่อง / บันทึกซ้ำ" oninput="delCheck()">
+    <label class="inline"><input type="checkbox" id="del_ok" onchange="delCheck()"> ข้าพเจ้ายืนยันว่าต้องการลบเคสนี้อย่างถาวร</label><br><br>
+    <div class="btn-row">
+      <button class="btn danger" id="del_btn" disabled onclick="confirmDeleteCase('${esc(id)}',this)">🗑 ลบถาวร</button>
+      <button class="btn secondary" onclick="openCaseDetail('${esc(id)}')">ยกเลิก</button>
+    </div>`);
+}
+function delCheck(){
+  const ok=$('del_ok').checked && $('del_reason').value.trim().length>=3;
+  $('del_btn').disabled=!ok;
+}
+async function confirmDeleteCase(id,btn){
+  if(!can('admin')||saving) return;
+  const reason=$('del_reason').value.trim();
+  if(reason.length<3||!$('del_ok').checked){ toast('กรุณาระบุเหตุผลและติ๊กยืนยัน'); return; }
+  saving=true; btn.disabled=true; btn.textContent='กำลังลบ...';
+  try{
+    await api('deleteCase',{id,reason});
+    closeModal(); toast('ลบเคสเรียบร้อยแล้ว'); await loadAll();
+  }catch(e){ alert(e.message); btn.disabled=false; btn.textContent='🗑 ลบถาวร'; }
+  saving=false;
+}
+
 function showDay(ds){
   const plans=planView.filter(p=>p.date===ds), extras=extraRecs.filter(r=>r.date===ds);
   let h=`<h2>งานวันที่ ${esc(thDate(ds))}</h2>`;
@@ -1265,7 +1322,58 @@ async function savePlanToServer(btn){
   btn.disabled=false;
 }
 
-/* ============================ EXPORT PDF (หน้าแรก = สรุป Dashboard, หน้าถัดไป = งาน PM ละ 1 หน้า) ============================ */
+/* ============================ EXPORT PDF (ใช้ร่วมกันทั้งงาน PM และปัญหา) ============================ */
+const PDF_CSS=`@page{size:A4;margin:12mm}
+  *{box-sizing:border-box;font-family:"Segoe UI","Tahoma",sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{margin:0;color:#1f2937;font-size:12px}
+  .bar{position:sticky;top:0;background:#0f3d63;color:#fff;padding:8px 14px;display:flex;gap:12px;align-items:center;font-size:13px}
+  .bar button{padding:6px 14px;border:0;border-radius:6px;cursor:pointer;font-size:13px}
+  @media print{.bar{display:none}}
+  .pg{page-break-after:always;padding:4px 0}.pg:last-child{page-break-after:auto}
+  h1{font-size:20px;margin:0;color:#0f3d63}h2{font-size:18px;margin:8px 0 10px;color:#0f3d63}h3{font-size:13px;margin:14px 0 6px;color:#0f3d63}
+  .title{display:flex;justify-content:space-between;gap:12px;border-bottom:3px solid #0f3d63;padding-bottom:8px;margin-bottom:10px}
+  .sub{color:#6b7280;font-size:11px;margin-top:3px}.flt{background:#f1f5f9;border-radius:6px;padding:6px 10px;margin-bottom:10px;font-size:11px}
+  .cards{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:6px}
+  .cd{border:1px solid #e5e7eb;border-radius:8px;padding:8px;text-align:center;background:#f8fafc}.cd .n{font-size:22px;font-weight:700;color:#0f3d63}.cd .l{font-size:10px;color:#6b7280}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .br{display:flex;align-items:center;gap:6px;margin-bottom:6px}.bl{width:96px;font-size:11px}.bv{width:48px;text-align:right}
+  .bt{flex:1;background:#e5e7eb;border-radius:5px;height:12px;overflow:hidden}.bf{height:100%;background:#0f3d63}
+  table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:5px 6px;border-bottom:1px solid #e5e7eb;font-size:11px;vertical-align:top}th{background:#f1f5f9}
+  tr{page-break-inside:avoid}
+  .bd{padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;white-space:nowrap}
+  .note{margin-top:10px;color:#6b7280;font-size:10px}
+  .hd{display:flex;justify-content:space-between;align-items:center;color:#6b7280;font-size:11px;border-bottom:1px solid #e5e7eb;padding-bottom:6px}
+  .info th{width:90px;background:#f8fafc}.info td{font-size:12px}
+  .ph{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+  .ph.one{grid-template-columns:1fr}
+  .phc{border:1px solid #e5e7eb;border-radius:8px;padding:6px;text-align:center}.phl{font-weight:700;font-size:11px;margin-bottom:4px;color:#374151}
+  .phc img{max-width:100%;max-height:100mm;object-fit:contain}.nop{height:60mm;display:flex;align-items:center;justify-content:center;color:#9ca3af}
+  .ph.one img{max-height:80mm}.ph.one .nop{height:40mm}
+  .cm{border:1px solid #e5e7eb;border-radius:8px;padding:8px 10px;min-height:40px;white-space:pre-wrap;margin-bottom:8px}
+  .tlp{border-left:3px solid #0f3d63;padding:2px 0 6px 10px;margin:4px 0 4px 4px;font-size:11px;page-break-inside:avoid;white-space:pre-wrap}
+  .tlp.first{border-color:#94a3b8}.tlh{color:#6b7280;font-size:10px;margin-bottom:1px}`;
+
+function pdfShell(title,body){
+  return `<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>${esc(title)}</title><style>${PDF_CSS}</style></head><body>
+    <div class="bar"><span>ตัวอย่างรายงาน — กำลังเปิดหน้าต่างพิมพ์ (เลือก Save as PDF)</span><button onclick="window.print()">🖨 พิมพ์ / บันทึก PDF อีกครั้ง</button></div>
+    ${body}</body></html>`;
+}
+async function printHtmlWindow(w,html){
+  try{
+    w.document.open(); w.document.write(html); w.document.close();
+    const imgs=[...w.document.images];
+    await Promise.all(imgs.map(i=>i.complete?1:new Promise(res=>{ i.onload=i.onerror=res; setTimeout(res,20000); })));
+    w.focus(); w.print();
+  }catch(e){ alert('สร้างรายงานไม่สำเร็จ: '+e.message); }
+}
+function pdfBadge(s){
+  const c={'เสร็จ':['#dcfce7','#15803d'],'รอตรวจ':['#dbeafe','#1e40af'],'ค้าง':['#fef9c3','#a16207'],'Overdue':['#fee2e2','#b91c1c'],
+    'ต่ำ':['#dcfce7','#15803d'],'กลาง':['#fef9c3','#a16207'],'สูง':['#ffedd5','#c2410c'],'วิกฤต':['#fee2e2','#b91c1c'],
+    'เปิดเคส':['#fee2e2','#b91c1c'],'กำลังแก้ไข':['#ffedd5','#c2410c'],'รอ Maintenance':['#ffedd5','#c2410c'],'ปิดเคส':['#dcfce7','#15803d']}[s]||['#e5e7eb','#374151'];
+  return `<span class="bd" style="background:${c[0]};color:${c[1]}">${esc(s)}</span>`;
+}
+
+/* ---------- รายงาน PM ---------- */
 function openPdfOptions(){
   openModal(`<h2>📄 Export รายงาน PM เป็น PDF</h2>
     <p class="muted">สร้างจากข้อมูลตาม Filter ที่เลือกอยู่ในตาราง Dashboard PM (ขณะนี้ ${lastPMRows.length} รายการ)</p>
@@ -1274,17 +1382,11 @@ function openPdfOptions(){
     <button class="btn" onclick="buildPdfReport()">สร้างรายงาน</button>
     <div class="muted" style="margin-top:10px">ในหน้าต่างพิมพ์ให้เลือก Destination = <b>Save as PDF</b> และติ๊ก <b>Background graphics</b> ถ้าต้องการไม่ให้มีวันที่/ลิงก์ที่หัวท้ายกระดาษ ให้เอาติ๊ก <b>Headers and footers</b> ออก</div>`);
 }
-
-function pdfBadge(s){
-  const c={'เสร็จ':['#dcfce7','#15803d'],'รอตรวจ':['#dbeafe','#1e40af'],'ค้าง':['#fef9c3','#a16207'],'Overdue':['#fee2e2','#b91c1c']}[s]||['#e5e7eb','#374151'];
-  return `<span class="bd" style="background:${c[0]};color:${c[1]}">${esc(s)}</span>`;
-}
-
 async function buildPdfReport(){
   const withPhoto=$('pdf_photo').checked, onlyDone=$('pdf_done').checked;
   const rows=lastPMRows.slice().sort((a,b)=>a.date.localeCompare(b.date));
   if(!rows.length){ toast('ไม่มีข้อมูลตาม Filter ที่เลือก'); return; }
-  const w=window.open('','_blank');
+  const w=window.open('','_blank');                         // ต้องเปิดทันทีที่ผู้ใช้กดปุ่ม ไม่งั้นถูกบล็อก
   if(!w){ alert('เบราว์เซอร์บล็อกหน้าต่างป๊อปอัพ กรุณาอนุญาต Pop-up ของเว็บนี้แล้วลองใหม่'); return; }
   closeModal();
 
@@ -1351,42 +1453,95 @@ async function buildPdfReport(){
     </section>`;
   }).join('');
 
-  const css=`@page{size:A4;margin:12mm}
-  *{box-sizing:border-box;font-family:"Segoe UI","Tahoma",sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  body{margin:0;color:#1f2937;font-size:12px}
-  .bar{position:sticky;top:0;background:#0f3d63;color:#fff;padding:8px 14px;display:flex;gap:12px;align-items:center;font-size:13px}
-  .bar button{padding:6px 14px;border:0;border-radius:6px;cursor:pointer;font-size:13px}
-  @media print{.bar{display:none}}
-  .pg{page-break-after:always;padding:4px 0}.pg:last-child{page-break-after:auto}
-  h1{font-size:20px;margin:0;color:#0f3d63}h2{font-size:18px;margin:8px 0 10px;color:#0f3d63}h3{font-size:13px;margin:14px 0 6px;color:#0f3d63}
-  .title{display:flex;justify-content:space-between;gap:12px;border-bottom:3px solid #0f3d63;padding-bottom:8px;margin-bottom:10px}
-  .sub{color:#6b7280;font-size:11px;margin-top:3px}.flt{background:#f1f5f9;border-radius:6px;padding:6px 10px;margin-bottom:10px;font-size:11px}
-  .cards{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:6px}
-  .cd{border:1px solid #e5e7eb;border-radius:8px;padding:8px;text-align:center;background:#f8fafc}.cd .n{font-size:22px;font-weight:700;color:#0f3d63}.cd .l{font-size:10px;color:#6b7280}
-  .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-  .br{display:flex;align-items:center;gap:6px;margin-bottom:6px}.bl{width:50px}.bv{width:48px;text-align:right}
-  .bt{flex:1;background:#e5e7eb;border-radius:5px;height:12px;overflow:hidden}.bf{height:100%;background:#0f3d63}
-  table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:5px 6px;border-bottom:1px solid #e5e7eb;font-size:11px;vertical-align:top}th{background:#f1f5f9}
-  tr{page-break-inside:avoid}
-  .bd{padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;white-space:nowrap}
-  .note{margin-top:10px;color:#6b7280;font-size:10px}
-  .hd{display:flex;justify-content:space-between;align-items:center;color:#6b7280;font-size:11px;border-bottom:1px solid #e5e7eb;padding-bottom:6px}
-  .info th{width:90px;background:#f8fafc}.info td{font-size:12px}
-  .ph{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
-  .phc{border:1px solid #e5e7eb;border-radius:8px;padding:6px;text-align:center}.phl{font-weight:700;font-size:11px;margin-bottom:4px;color:#374151}
-  .phc img{max-width:100%;max-height:100mm;object-fit:contain}.nop{height:60mm;display:flex;align-items:center;justify-content:center;color:#9ca3af}
-  .cm{border:1px solid #e5e7eb;border-radius:8px;padding:8px 10px;min-height:40px;white-space:pre-wrap}`;
+  await printHtmlWindow(w,pdfShell(`PM_Report_${todayStr()}`,page1+pages));
+}
 
-  const html=`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>PM_Report_${todayStr()}</title><style>${css}</style></head><body>
-    <div class="bar"><span>ตัวอย่างรายงาน — กำลังเปิดหน้าต่างพิมพ์ (เลือก Save as PDF)</span><button onclick="window.print()">🖨 พิมพ์ / บันทึก PDF อีกครั้ง</button></div>
-    ${page1}${pages}</body></html>`;
+/* ---------- รายงานปัญหาเครื่องจักร (หน้าแรกสรุป + 1 เคสต่อหน้า) ---------- */
+function openProbPdfOptions(){
+  openModal(`<h2>📄 Export รายงานปัญหาเครื่องจักรเป็น PDF</h2>
+    <p class="muted">สร้างจากข้อมูลตาม Filter ที่เลือกอยู่ในตาราง Dashboard ปัญหา (ขณะนี้ ${lastProbRows.length} เคส)</p>
+    <label class="inline"><input type="checkbox" id="pdfp_photo" checked> แนบรูปถ่าย Alarm</label><br>
+    <label class="inline"><input type="checkbox" id="pdfp_tl" checked> แสดงประวัติการแก้ไข / Follow-up</label><br>
+    <label class="inline"><input type="checkbox" id="pdfp_open"> หน้ารายละเอียดเฉพาะเคสที่ยังไม่ปิด</label><br><br>
+    <button class="btn" onclick="buildProbPdfReport()">สร้างรายงาน</button>
+    <div class="muted" style="margin-top:10px">ในหน้าต่างพิมพ์ให้เลือก Destination = <b>Save as PDF</b> และติ๊ก <b>Background graphics</b> ถ้าต้องการไม่ให้มีวันที่/ลิงก์ที่หัวท้ายกระดาษ ให้เอาติ๊ก <b>Headers and footers</b> ออก</div>`);
+}
+async function buildProbPdfReport(){
+  const withPhoto=$('pdfp_photo').checked, withTl=$('pdfp_tl').checked, onlyOpen=$('pdfp_open').checked;
+  const rows=lastProbRows.slice().sort((a,b)=>a.date.localeCompare(b.date)||String(a.timestamp).localeCompare(String(b.timestamp)));
+  if(!rows.length){ toast('ไม่มีข้อมูลตาม Filter ที่เลือก'); return; }
+  const w=window.open('','_blank');                         // ต้องเปิดทันทีที่ผู้ใช้กดปุ่ม ไม่งั้นถูกบล็อก
+  if(!w){ alert('เบราว์เซอร์บล็อกหน้าต่างป๊อปอัพ กรุณาอนุญาต Pop-up ของเว็บนี้แล้วลองใหม่'); return; }
+  closeModal();
 
-  try{
-    w.document.open(); w.document.write(html); w.document.close();
-    const imgs=[...w.document.images];
-    await Promise.all(imgs.map(i=>i.complete?1:new Promise(res=>{ i.onload=i.onerror=res; setTimeout(res,20000); })));
-    w.focus(); w.print();
-  }catch(e){ alert('สร้างรายงานไม่สำเร็จ: '+e.message); }
+  const total=rows.length, critical=rows.filter(r=>r.severity==='วิกฤต').length, open=rows.filter(r=>r.status!=='ปิดเคส').length;
+  const closedN=total-open, fuN=rows.filter(r=>r.fu>0).length;
+  const sevList=[['วิกฤต','#dc2626'],['สูง','#f59e0b'],['กลาง','#eab308'],['ต่ำ','#16a34a']].map(([s,c])=>({s,c,n:rows.filter(r=>r.severity===s).length}));
+  const sevMax=Math.max(1,...sevList.map(x=>x.n));
+  const byM={}; rows.forEach(r=>byM[r.machine]=(byM[r.machine]||0)+1);
+  const top=Object.entries(byM).sort((a,b)=>b[1]-a[1]).slice(0,5), topMax=top.length?top[0][1]:1, pcol=['#dc2626','#f59e0b','#eab308','#0f3d63','#6b7280'];
+
+  const v=id=>$(id).value, fl=[];
+  if(v('f2_period')) fl.push(v('f2_period')==='week'?'7 วันล่าสุด':'เดือนนี้');
+  if(v('f2_from')||v('f2_to')) fl.push(`ช่วงวันที่ ${v('f2_from')||'-'} ถึง ${v('f2_to')||'-'}`);
+  if(v('f2_shift')) fl.push('กะ '+v('f2_shift'));
+  if(v('f2_machine')) fl.push('เครื่องจักร: '+v('f2_machine'));
+  if(v('f2_user')) fl.push('ผู้แจ้ง: '+nameOf(v('f2_user')));
+  if(v('f2_severity')) fl.push('ความรุนแรง: '+v('f2_severity'));
+  if(v('f2_status')) fl.push('สถานะ: '+(v('f2_status')==='__open'?'ยังไม่ปิดทั้งหมด':v('f2_status')));
+  const period=(v('f2_from')||v('f2_to'))?`${v('f2_from')?thDate(v('f2_from')):'เริ่มต้น'} - ${v('f2_to')?thDate(v('f2_to')):'ปัจจุบัน'}`
+    :(v('f2_period')==='week'?'7 วันล่าสุด':(v('f2_period')==='month'?`เดือน${TH_MONTHS[new Date().getMonth()]} ${new Date().getFullYear()+543}`:'ข้อมูลทั้งหมด'));
+
+  const recs=rows.filter(r=>!onlyOpen||r.status!=='ปิดเคส');
+  const who=`${ME.name} (${ME.username})`, now=thDateTime(nowTs());
+
+  const page1=`<section class="pg">
+    <div class="title"><div><h1>รายงานสรุปปัญหาเครื่องจักร ระบบ Utility</h1><div class="sub">ช่วงเวลา: ${esc(period)}</div></div>
+      <div class="sub" style="text-align:right">สร้างเมื่อ ${esc(now)}<br>โดย ${esc(who)}</div></div>
+    ${fl.length?`<div class="flt">Filter ที่ใช้: ${esc(fl.join(' | '))}</div>`:''}
+    <div class="cards">
+      <div class="cd"><div class="n">${total}</div><div class="l">เคสทั้งหมด</div></div>
+      <div class="cd"><div class="n" style="color:#b91c1c">${critical}</div><div class="l">เคสวิกฤต</div></div>
+      <div class="cd"><div class="n">${open}</div><div class="l">ยังไม่ปิดเคส</div></div>
+      <div class="cd"><div class="n">${closedN}</div><div class="l">ปิดเคสแล้ว</div></div>
+      <div class="cd"><div class="n">${fuN}</div><div class="l">มีการ Follow-up</div></div>
+    </div>
+    <div class="two">
+      <div><h3>จำนวนเคสตามระดับความรุนแรง</h3>
+        ${sevList.map(x=>`<div class="br"><span class="bl">${x.s}</span><div class="bt"><div class="bf" style="width:${x.n/sevMax*100}%;background:${x.c}"></div></div><span class="bv">${x.n} เคส</span></div>`).join('')}</div>
+      <div><h3>Top 5 เครื่องจักรที่มีปัญหาบ่อย (Pareto)</h3>
+        ${top.map(([m,n],i)=>`<div class="br"><span class="bl">${esc(m)}</span><div class="bt"><div class="bf" style="width:${n/topMax*100}%;background:${pcol[i]}"></div></div><span class="bv">${n} ครั้ง</span></div>`).join('')||'<div class="sub">ไม่มีข้อมูล</div>'}</div>
+    </div>
+    <h3>รายการเหตุการณ์ผิดปกติทั้งหมด (${total} เคส)</h3>
+    <table><thead><tr><th>วันที่</th><th>กะ</th><th>เครื่องจักร</th><th>Alarm/อาการ</th><th>ความรุนแรง</th><th>สถานะ</th><th>ผู้แจ้ง</th><th>FU</th></tr></thead><tbody>
+    ${rows.map(r=>`<tr><td>${esc(r.date)}</td><td>${esc(r.shift)}</td><td>${esc(r.machine)}</td><td>${esc(r.alarm)}</td><td>${pdfBadge(r.severity)}</td><td>${pdfBadge(r.status)}</td><td>${esc(r.reporter)}</td><td>${r.fu||'-'}</td></tr>`).join('')}
+    </tbody></table>
+    <div class="note">หน้าถัดไปเป็นรายละเอียดเคสแต่ละเคส (${recs.length} เคส${onlyOpen?' เฉพาะที่ยังไม่ปิด':''}) FU = จำนวนครั้งที่มีการบันทึก Follow-up</div>
+  </section>`;
+
+  const pages=recs.map((r,i)=>{
+    const mc=machines.find(m=>m.name===r.machine);
+    const ups=updates.filter(u=>u.caseId===r.id).sort((a,b)=>String(a.timestamp).localeCompare(String(b.timestamp)));
+    const u1=withPhoto?photoUrl(r.photoId):'';
+    const tl=withTl?`<h3>ประวัติการแก้ไข / Follow-up (${ups.length} ครั้ง)</h3>
+      <div class="tlp first"><div class="tlh">${esc(thDateTime(r.timestamp))} · ${esc(r.reporter)} · แจ้งเคส</div>วิธีแก้เบื้องต้น: ${esc(r.initialFix||'-')}</div>`
+      +ups.map(u=>`<div class="tlp"><div class="tlh">${esc(thDateTime(u.timestamp))} · ${esc(nameOf(u.userId,u.userName))} (${esc(ROLES[u.role]||u.role)}) → ${pdfBadge(u.statusAfter)}</div>${esc(u.note)}</div>`).join('')
+      :`<div class="cm"><b>วิธีแก้ปัญหาเบื้องต้น</b><br>${esc(r.initialFix||'-')}</div>`;
+    return `<section class="pg">
+      <div class="hd"><span>เคสที่ ${i+1} / ${recs.length}</span><span>${pdfBadge(r.severity)} ${pdfBadge(r.status)}</span></div>
+      <h2>${esc(r.alarm)}</h2>
+      <table class="info"><tbody>
+        <tr><th>เครื่องจักร</th><td>${esc(r.machine)}</td><th>ตำแหน่ง</th><td>${esc(mc?mc.location||'-':'-')}</td></tr>
+        <tr><th>วันที่เกิดเหตุ</th><td>${esc(thDate(r.date))}</td><th>กะ</th><td>${esc(r.shift||'-')}</td></tr>
+        <tr><th>ผู้แจ้ง</th><td>${esc(r.reporter)} (${esc(r.reportedById||'-')})</td><th>บันทึกเมื่อ</th><td>${esc(thDateTime(r.timestamp))}</td></tr>
+        <tr><th>ความรุนแรง</th><td>${pdfBadge(r.severity)}</td><th>สถานะปัจจุบัน</th><td>${pdfBadge(r.status)}</td></tr>
+      </tbody></table>
+      <div class="ph one"><div class="phc"><div class="phl">รูปถ่าย Alarm</div>${u1?`<img src="${esc(u1)}" alt="">`:`<div class="nop">${withPhoto?'ไม่มีรูป':'(ไม่แนบรูป)'}</div>`}</div></div>
+      ${tl}
+    </section>`;
+  }).join('');
+
+  await printHtmlWindow(w,pdfShell(`Problem_Report_${todayStr()}`,page1+pages));
 }
 
 /* ============================ ADMIN: เครื่องจักร / งาน PM / ผู้ใช้ ============================ */
