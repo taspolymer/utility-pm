@@ -263,7 +263,7 @@
       <button class="btn secondary small" onclick="changeCalPeriod(1)">ถัดไป ›</button>
     </div>
     <div class="scroll-x" id="calendarContainer" style="margin-top:14px"></div>
-    <div class="row-count">📌 ตามแผน &nbsp; ✅ เสร็จ &nbsp; 🕓 รอตรวจ &nbsp; ⚠ เลยกำหนด &nbsp;|&nbsp; คลิกที่วันเพื่อดูรายละเอียด &nbsp;|&nbsp; ผู้ทำงานจะถูกบันทึกตามผู้ที่ Login ตอนบันทึก PM</div>
+    <div class="row-count">📌 ตามแผน &nbsp; ✅ เสร็จ &nbsp; 🕓 รอตรวจ &nbsp; 🔄 ตีกลับ/แก้ไข &nbsp; ⚠ เลยกำหนด &nbsp;|&nbsp; คลิกที่วันเพื่อดูรายละเอียด</div>
   </div>
 
   <div class="card" id="adminSection" style="display:none">
@@ -332,7 +332,7 @@
       <div class="filter-group"><label>กะ</label><select id="f1_shift" onchange="renderPM()"><option value="">ทั้งหมด</option><option>A</option><option>B</option><option>C</option><option>D</option></select></div>
       <div class="filter-group"><label>เครื่องจักร (พิมพ์ค้นหา)</label><input id="f1_machine" class="mpick" data-all="1" autocomplete="off" placeholder="ทั้งหมด" oninput="renderPM()"></div>
       <div class="filter-group"><label>ผู้ปฏิบัติงาน</label><select id="f1_user" onchange="renderPM()"></select></div>
-      <div class="filter-group"><label>สถานะ</label><select id="f1_status" onchange="renderPM()"><option value="">ทั้งหมด</option><option>เสร็จ</option><option>รอตรวจ</option><option>ค้าง</option><option>Overdue</option></select></div>
+      <div class="filter-group"><label>สถานะ</label><select id="f1_status" onchange="renderPM()"><option value="">ทั้งหมด</option><option>เสร็จ</option><option>รอตรวจ</option><option>ตีกลับ/แก้ไข</option><option>ค้าง</option><option>Overdue</option></select></div>
       <div class="filter-group"><label>ตั้งแต่วันที่</label><input type="date" id="f1_from" onchange="renderPM()"></div>
       <div class="filter-group"><label>ถึงวันที่</label><input type="date" id="f1_to" onchange="renderPM()"></div>
       <div class="filter-group"><button class="btn secondary small" onclick="resetPM()">ล้าง Filter</button></div>
@@ -453,7 +453,7 @@
 
 <script>
 /* ============================ CONFIG ============================ */
-const API_URL = 'https://script.google.com/macros/s/AKfycbz0qYCbhaaxZvQt7iX4ga3jrDatNCB8Ay1FRt1ybporNAvabnkd2sVyPcPk5UjFCkA/exec';            // ใส่ URL ของ Apps Script Web App (ลงท้าย /exec) เมื่อพร้อมใช้งานจริง; เว้นว่าง = โหมดทดสอบ
+const API_URL = '';            // ใส่ URL ของ Apps Script Web App (ลงท้าย /exec) เมื่อพร้อมใช้งานจริง; เว้นว่าง = โหมดทดสอบ
 const USE_MOCK = !API_URL;
 const HOLIDAYS = [];           // วันหยุดบริษัท เช่น ['2025-04-14'] จะถูกเลื่อนเหมือนเสาร์-อาทิตย์
 const SHIFTS = ['A','B','C','D'];
@@ -582,12 +582,12 @@ async function api(action, payload = {}){
   return j.data;
 }
 
-const MOCK_KEY = 'utilitypm_mockdb_v2';
+const MOCK_KEY = 'utilitypm_mockdb_v3';
 let MOCKDB = null;
 function seedMock(){
   const t=new Date(), m=t.getMonth(), y=t.getFullYear();
   const D=(mo,d)=>fmt(new Date(y,mo,d)), ago=n=>fmt(addDays(t,-n));
-  const rec=(date,shift,machine,activity,jobId,status,u,un,comment='')=>({id:uid(),timestamp:date+' 10:00:00',date,shift,machine,activity,jobId,status,userId:u,userName:un,comment,photoBeforeId:'',photoAfterId:''});
+  const rec=(date,shift,machine,activity,jobId,status,u,un,comment='',supComment='')=>({id:uid(),timestamp:date+' 10:00:00',date,shift,machine,activity,jobId,status,userId:u,userName:un,comment,photoBeforeId:'',photoAfterId:'',supervisorComment:supComment});
   const cs=(id,date,shift,machine,alarm,sev,status,fix,u,un,last)=>({id,timestamp:date+' 09:00:00',date,shift,machine,alarm,photoId:'',severity:sev,initialFix:fix,status,reportedById:u,reportedBy:un,lastUpdate:last||date+' 09:00:00'});
   const up=(caseId,date,hhmm,u,un,role,note,st)=>({id:uid(),caseId,timestamp:date+' '+hhmm+':00',userId:u,userName:un,role,note,statusAfter:st});
   const c1=uid(),c2=uid(),c3=uid(),c4=uid(),c5=uid();
@@ -609,12 +609,10 @@ function seedMock(){
       job('J3','เช็คสาย Belt','Cooling Tower #1','Rooftop','weekday','','1,4','ตรวจความตึงและรอยสึก'),
       job('J4','ตรวจ Safety Valve','Boiler #1','Boiler Room','days',7,'','ตรวจการรั่วซึมและสภาพภายนอก')],
     PM_Records:[
-      rec(D(m-1,20),'A','Air Compressor #1','ทำความสะอาด Strainer','J1','เสร็จ','somchai','สมชาย'),
+      rec(D(m-1,20),'A','Air Compressor #1','ทำความสะอาด Strainer','J1','เสร็จ','somchai','สมชาย','','ตรวจเรียบร้อย ผ่าน'),
       rec(D(m-1,15),'B','Chiller #2','ตรวจสอบแรงดัน Chiller','J2','เสร็จ','somying','สมหญิง'),
-      rec(D(m-1,28),'C','Cooling Tower #1','เช็คสาย Belt','J3','เสร็จ','somsak','สมศักดิ์'),
-      rec(D(m-1,25),'D','Boiler #1','ตรวจ Safety Valve','J4','เสร็จ','mana','มานะ'),
       rec(ago(2),'D','Boiler #1','ตรวจ Safety Valve','J4','รอตรวจ','mana','มานะ','พบคราบน้ำมันเล็กน้อย'),
-      rec(ago(1),'A','Air Compressor #1','เปลี่ยนไส้กรองน้ำมัน','','เสร็จ','somchai','สมชาย')],
+      rec(ago(1),'A','Air Compressor #1','เปลี่ยนไส้กรองน้ำมัน','','รอตรวจ','somchai','สมชาย','เปลี่ยนเรียบร้อย')],
     Abnormal_Events:[
       cs(c1,ago(1),'A','Air Compressor #1','High Pressure Alarm','สูง','ปิดเคส','Reset Alarm และตรวจวาล์ว','somchai','สมชาย',ago(1)+' 15:00:00'),
       cs(c2,ago(3),'B','Chiller #2','Low Temp Alarm','กลาง','กำลังแก้ไข','ปรับ Set point','somying','สมหญิง',ago(2)+' 10:30:00'),
@@ -650,7 +648,15 @@ async function mockApi(action,p){
     case 'addPM':
       need(...WRITERS);
       if(!MOCKDB.Machines.some(m=>m.name===p.machine&&m.active!=='N')) throw new Error('ไม่พบเครื่องจักรนี้ในรายการ');
-      MOCKDB.PM_Records.push({id:uid(),timestamp:ts,date:p.date,shift:ME.shift||'',machine:p.machine,activity:p.activity,jobId:p.jobId||'',status:'รอตรวจ',userId:ME.username,userName:ME.name,comment:p.comment||'',photoBeforeId:p.photoBefore||'',photoAfterId:p.photoAfter||''});
+      // หากเป็นการแก้ไขงานเดิมที่ถูก Reject (ส่งซ่อมใหม่) ให้แทนที่รายการเดิม
+      if(p.id){
+        const idx=MOCKDB.PM_Records.findIndex(x=>x.id===p.id);
+        if(idx>=0){
+          MOCKDB.PM_Records[idx]={...MOCKDB.PM_Records[idx],date:p.date,machine:p.machine,activity:p.activity,jobId:p.jobId||'',status:'รอตรวจ',comment:p.comment||'',photoBeforeId:p.photoBefore||MOCKDB.PM_Records[idx].photoBeforeId,photoAfterId:p.photoAfter||MOCKDB.PM_Records[idx].photoAfterId,supervisorComment:''};
+          saveMock(); return 'saved';
+        }
+      }
+      MOCKDB.PM_Records.push({id:uid(),timestamp:ts,date:p.date,shift:ME.shift||'',machine:p.machine,activity:p.activity,jobId:p.jobId||'',status:'รอตรวจ',userId:ME.username,userName:ME.name,comment:p.comment||'',photoBeforeId:p.photoBefore||'',photoAfterId:p.photoAfter||'',supervisorComment:''});
       saveMock(); return 'saved';
     case 'addAbnormal':
       need(...WRITERS);
@@ -678,7 +684,13 @@ async function mockApi(action,p){
     }
     case 'approvePM': {
       need('supervisor','admin'); const r=MOCKDB.PM_Records.find(x=>x.id===p.id); if(!r) throw new Error('ไม่พบรายการ');
-      r.status='เสร็จ'; saveMock(); return 'approved';
+      r.status='เสร็จ'; r.supervisorComment=String(p.comment||'').slice(0,1000); saveMock(); return 'approved';
+    }
+    case 'rejectPM': {
+      need('supervisor','admin');
+      const comment=String(p.comment||'').trim(); if(!comment) throw new Error('กรุณาระบุเหตุผลในการ Reject ให้พนักงานทราบ');
+      const r=MOCKDB.PM_Records.find(x=>x.id===p.id); if(!r) throw new Error('ไม่พบรายการ');
+      r.status='ตีกลับ/แก้ไข'; r.supervisorComment=comment.slice(0,1000); saveMock(); return 'rejected';
     }
     case 'upsert': case 'remove': {
       need('admin'); if(!['Machines','PM_Jobs'].includes(p.sheet)) throw new Error('ไม่อนุญาต');
@@ -724,6 +736,7 @@ const dirtyMonths=new Set();
 const sortState={pm:{key:'date',asc:false}, prob:{key:'date',asc:false}};
 let lastPMRows=[], lastProbRows=[];
 let draft=[], draftMonth='', draftApplied=true, draftSeq=0;
+let editPmId = null; // เก็บ id กรณีแก้ PM ที่โดน Reject
 
 /* ============================ AUTH / START ============================ */
 async function submitLogin(){
@@ -738,7 +751,7 @@ async function submitLogin(){
 }
 function logout(expired){
   localStorage.removeItem('token'); localStorage.removeItem('me'); TOKEN=null; ME=null;
-  draft=[]; draftMonth=''; draftApplied=true; dirtyMonths.clear(); planData=[];
+  draft=[]; draftMonth=''; draftApplied=true; dirtyMonths.clear(); planData=[]; editPmId=null;
   $('appView').style.display='none'; $('loginView').style.display='flex'; $('loginPass').value='';
   $('loginMsg').textContent = expired ? 'Session หมดอายุ กรุณา Login ใหม่' : '';
 }
@@ -756,7 +769,7 @@ async function startApp(){
 async function loadAll(){
   const d=await api('bootstrap');
   const D=s=>String(s??'').slice(0,10);
-  pmData=d.PM_Records.map(r=>({...r,date:D(r.date)}));
+  pmData=d.PM_Records.map(r=>({...r,date:D(r.date),supervisorComment:r.supervisorComment||''}));
   problemData=d.Abnormal_Events.map(r=>({...r,date:D(r.date)}));
   updates=d.Case_Updates;
   machines=d.Machines.map(m=>({...m,active:m.active!=='N'}));
@@ -799,7 +812,8 @@ function computeStatus(){
     list.forEach((p,i)=>{
       const d=parseDate(p.date), from=fmt(addDays(d,-3)), monthEnd=fmt(new Date(d.getFullYear(),d.getMonth()+1,0));
       const nextLimit=list[i+1]?fmt(addDays(parseDate(list[i+1].date),-1)):monthEnd, to=nextLimit<monthEnd?nextLimit:monthEnd;
-      const rec=p.jobId?pmData.find(r=>r.jobId===p.jobId&&!used.has(r.id)&&r.date>=from&&r.date<=to):null;
+      // ให้จับคู่กับ rec ที่ไม่ใช่ 'ตีกลับ/แก้ไข' (เพื่อให้สถานะในแผนขึ้นว่า Overdue/ค้าง และพนักงานต้องส่งงานใหม่)
+      const rec=p.jobId?pmData.find(r=>r.jobId===p.jobId&&!used.has(r.id)&&r.date>=from&&r.date<=to&&r.status!=='ตีกลับ/แก้ไข'):null;
       if(rec) used.add(rec.id);
       planView.push({...p,rec,status:rec?rec.status:(p.date<today?'Overdue':'ค้าง')});
     });
@@ -812,7 +826,7 @@ function pmRows(){
   planView.filter(p=>!p.rec).forEach(p=>rows.push({id:'',hasRec:false,date:p.date,shift:'-',machine:p.machine,activity:p.jobName,status:p.status,userId:'',user:'-'}));
   return rows;
 }
-function statusBadge(s){ const m={'เสร็จ':'green','รอตรวจ':'blue','ค้าง':'yellow','Overdue':'red'}; return `<span class="badge ${m[s]||'yellow'}">${esc(s)}</span>`; }
+function statusBadge(s){ const m={'เสร็จ':'green','รอตรวจ':'blue','ตีกลับ/แก้ไข':'red','ค้าง':'yellow','Overdue':'red'}; return `<span class="badge ${m[s]||'yellow'}">${esc(s)}</span>`; }
 function severityBadge(s){ const m={'ต่ำ':'green','กลาง':'yellow','สูง':'orange','วิกฤต':'red'}; return `<span class="badge ${m[s]||'yellow'}">${esc(s)}</span>`; }
 function caseBadge(s){ const m={'เปิดเคส':'red','กำลังแก้ไข':'orange','รอ Maintenance':'orange','ปิดเคส':'green'}; return `<span class="badge ${m[s]||'yellow'}">${esc(s)}</span>`; }
 function pillClass(p){ return p.rec?(p.rec.status==='เสร็จ'?'done':'wait'):(p.status==='Overdue'?'late':''); }
@@ -865,13 +879,29 @@ function onPMJobChange(){
   if(j){ $('pm_machine').value=j.machine; $('pm_activity').value=j.jobName; }
   $('pm_hint').textContent=j&&j.detail?'📋 '+j.detail:'';
 }
-function openPMForm(jobId){
+function openPMForm(jobId, pmRecordId){
   closeModal(); fillJobSelect();
+  editPmId = pmRecordId || null;
   ['pm_machine','pm_activity','pm_comment'].forEach(id=>$(id).value='');
   $('pm_date').value=todayStr(); $('pm_flag').checked=false; $('pm_hint').textContent='';
-  $('pm_who').textContent=`ผู้บันทึก: ${ME.name} (${ME.username})${ME.shift?' | กะ '+ME.shift:''} — ระบบบันทึกให้อัตโนมัติ`;
   resetPhoto('fileBefore','boxBefore','+ ถ่าย/อัพโหลดรูป ก่อนทำ'); resetPhoto('fileAfter','boxAfter','+ ถ่าย/อัพโหลดรูป หลังทำ');
-  if(jobId){ $('pm_job').value=jobId; onPMJobChange(); }
+
+  if(editPmId){
+    const r = pmData.find(x=>x.id===editPmId);
+    if(r){
+      $('pm_machine').value = r.machine;
+      $('pm_date').value = r.date;
+      $('pm_activity').value = r.activity;
+      $('pm_job').value = r.jobId || '';
+      $('pm_comment').value = r.comment || '';
+      $('pm_who').textContent = `แก้ไขงานที่ถูกตีกลับ (Reject) — เหตุผล: ${r.supervisorComment||'-'}`;
+      if(r.photoBeforeId) $('boxBefore').innerHTML = `<img class="thumb-fill" src="${esc(photoUrl(r.photoBeforeId))}" alt="">`;
+      if(r.photoAfterId) $('boxAfter').innerHTML = `<img class="thumb-fill" src="${esc(photoUrl(r.photoAfterId))}" alt="">`;
+    }
+  } else {
+    $('pm_who').textContent = `ผู้บันทึก: ${ME.name} (${ME.username})${ME.shift?' | กะ '+ME.shift:''} — ระบบบันทึกให้อัตโนมัติ`;
+    if(jobId){ $('pm_job').value=jobId; onPMJobChange(); }
+  }
   showPage('pmform');
 }
 async function savePM(btn){
@@ -883,9 +913,9 @@ async function savePM(btn){
   saving=true; btn.disabled=true; btn.textContent='กำลังบันทึก...';
   try{
     const photoBefore=await fileToData('fileBefore'), photoAfter=await fileToData('fileAfter'), comment=$('pm_comment').value;
-    await api('addPM',{date,machine,activity,jobId:$('pm_job').value,comment,photoBefore,photoAfter});
+    await api('addPM',{id:editPmId, date,machine,activity,jobId:$('pm_job').value,comment,photoBefore,photoAfter});
     if($('pm_flag').checked) await api('addAbnormal',{date,machine,alarm:`[พบระหว่างทำ PM: ${activity}] ${comment||'-'}`,severity:'กลาง',initialFix:'',photo:''});
-    toast('บันทึกสำเร็จ'); await loadAll(); showPage('pmlist');
+    toast('บันทึกสำเร็จ'); editPmId=null; await loadAll(); showPage('pmlist');
   }catch(e){ alert(e.message); }
   saving=false; btn.disabled=false; btn.textContent='บันทึก';
 }
@@ -909,7 +939,7 @@ async function saveAbnormal(btn){
   saving=false; btn.disabled=false; btn.textContent='บันทึก';
 }
 
-/* ============================ MODAL / DETAIL ============================ */
+/* ============================ MODAL / DETAIL (PM & REJECT) ============================ */
 function openModal(html){ $('modalBox').innerHTML=html+`<div style="text-align:right;margin-top:14px"><button class="btn secondary small" onclick="closeModal()">ปิด</button></div>`; $('modal').classList.add('show'); }
 function closeModal(){ $('modal').classList.remove('show'); }
 function photoBlock(label,id){
@@ -919,13 +949,47 @@ function photoBlock(label,id){
 }
 function openPMDetail(id){
   const r=pmData.find(x=>x.id===id); if(!r) return;
+  const isSup = can('supervisor','admin');
+  const isOwner = ME && r.userId === ME.username;
+  const isRejected = r.status === 'ตีกลับ/แก้ไข';
+
+  let supAction = '';
+  if(r.status==='รอตรวจ' && isSup){
+    supAction = `<hr>
+      <label>Comment / เหตุผลในการตรวจสอบ (บังคับกรณี Reject)</label>
+      <textarea id="sup_comment" rows="2" placeholder="ระบุเหตุผลหากต้องการตีกลับ หรือข้อความเพิ่มเติม..."></textarea>
+      <div class="btn-row">
+        <button class="btn" style="background:#15803d" onclick="approvePM('${esc(r.id)}',this)">✔ อนุมัติ (เสร็จ)</button>
+        <button class="btn danger" onclick="rejectPM('${esc(r.id)}',this)">❌ ส่งแก้ไข (Reject)</button>
+      </div>`;
+  } else if(isRejected && isOwner && canWrite()){
+    supAction = `<hr><div class="warnbox"><b>งานนี้ถูกตีกลับ (Reject):</b> ${esc(r.supervisorComment||'-')}</div>
+      <button class="btn" onclick="closeModal(); openPMForm(null, '${esc(r.id)}')">✏ แก้ไขและส่งตรวจใหม่</button>`;
+  }
+
   openModal(`<h2>รายละเอียดงาน PM</h2>
     <p><b>${esc(r.activity)}</b><br>เครื่องจักร: ${esc(r.machine)}<br>วันที่: ${esc(thDate(r.date))} | กะ ${esc(r.shift)} | ผู้ทำ: ${esc(nameOf(r.userId,r.userName))} (${esc(r.userId)})<br>สถานะ: ${statusBadge(r.status)}</p>
+    ${r.supervisorComment?`<p><b>ความเห็นหัวหน้างาน:</b> <span style="color:#b91c1c">${esc(r.supervisorComment)}</span></p>`:''}
     <div class="grid2">${photoBlock('รูปก่อนทำ',r.photoBeforeId)}${photoBlock('รูปหลังทำ',r.photoAfterId)}</div>
-    <p><label>Comment</label><br>${esc(r.comment||'-')}</p>
-    ${r.status==='รอตรวจ'&&can('supervisor','admin')?`<button class="btn" onclick="approvePM('${esc(r.id)}',this)">✔ อนุมัติ (เสร็จสมบูรณ์)</button>`:''}`);
+    <p><label>Comment พนักงาน</label><br>${esc(r.comment||'-')}</p>
+    ${supAction}`);
 }
-async function approvePM(id,btn){ btn.disabled=true; try{ await api('approvePM',{id}); closeModal(); toast('อนุมัติแล้ว'); await loadAll(); }catch(e){ alert(e.message); btn.disabled=false; } }
+async function approvePM(id,btn){
+  btn.disabled=true;
+  try{
+    await api('approvePM',{id,comment:$('sup_comment')?$('sup_comment').value:''});
+    closeModal(); toast('อนุมัติแล้ว'); await loadAll();
+  }catch(e){ alert(e.message); btn.disabled=false; }
+}
+async function rejectPM(id,btn){
+  const comment=$('sup_comment')?$('sup_comment').value.trim():'';
+  if(!comment){ toast('กรุณากรอกเหตุผลในการ Reject ในช่อง Comment ด้านบน'); return; }
+  btn.disabled=true;
+  try{
+    await api('rejectPM',{id,comment});
+    closeModal(); toast('ส่งกลับให้พนักงานแก้ไขแล้ว'); await loadAll();
+  }catch(e){ alert(e.message); btn.disabled=false; }
+}
 
 function openCaseDetail(id){
   const r=problemData.find(x=>x.id===id); if(!r) return;
@@ -1367,7 +1431,7 @@ async function printHtmlWindow(w,html){
   }catch(e){ alert('สร้างรายงานไม่สำเร็จ: '+e.message); }
 }
 function pdfBadge(s){
-  const c={'เสร็จ':['#dcfce7','#15803d'],'รอตรวจ':['#dbeafe','#1e40af'],'ค้าง':['#fef9c3','#a16207'],'Overdue':['#fee2e2','#b91c1c'],
+  const c={'เสร็จ':['#dcfce7','#15803d'],'รอตรวจ':['#dbeafe','#1e40af'],'ตีกลับ/แก้ไข':['#fee2e2','#b91c1c'],'ค้าง':['#fef9c3','#a16207'],'Overdue':['#fee2e2','#b91c1c'],
     'ต่ำ':['#dcfce7','#15803d'],'กลาง':['#fef9c3','#a16207'],'สูง':['#ffedd5','#c2410c'],'วิกฤต':['#fee2e2','#b91c1c'],
     'เปิดเคส':['#fee2e2','#b91c1c'],'กำลังแก้ไข':['#ffedd5','#c2410c'],'รอ Maintenance':['#ffedd5','#c2410c'],'ปิดเคส':['#dcfce7','#15803d']}[s]||['#e5e7eb','#374151'];
   return `<span class="bd" style="background:${c[0]};color:${c[1]}">${esc(s)}</span>`;
@@ -1446,6 +1510,7 @@ async function buildPdfReport(){
         <tr><th>เครื่องจักร</th><td>${esc(r.machine)}</td><th>ตำแหน่ง</th><td>${esc(mc?mc.location||'-':'-')}</td></tr>
         <tr><th>วันที่ทำ</th><td>${esc(thDate(r.date))}</td><th>กะ</th><td>${esc(r.shift||'-')}</td></tr>
         <tr><th>ผู้ทำ</th><td>${esc(nameOf(r.userId,r.userName))} (${esc(r.userId)})</td><th>บันทึกเมื่อ</th><td>${esc(thDateTime(r.timestamp))}</td></tr>
+        ${r.supervisorComment?`<tr><th>ความเห็นหัวหน้างาน</th><td colspan="3" style="color:#b91c1c">${esc(r.supervisorComment)}</td></tr>`:''}
         ${job&&job.detail?`<tr><th>ขั้นตอนงาน</th><td colspan="3">${esc(job.detail)}</td></tr>`:''}
       </tbody></table>
       <div class="ph">${photo('รูปก่อนทำ',r.photoBeforeId)}${photo('รูปหลังทำ',r.photoAfterId)}</div>
